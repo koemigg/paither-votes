@@ -4,6 +4,7 @@
 /*globals Web3*/
 /*globals web3*/
 /*globals ethers*/
+/*globals StringToBytes*/
 
 var creatorABI = [
   {
@@ -646,8 +647,8 @@ var votingABI = [
   },
 ];
 
-var creatorAddress = "0xeFb8d623C9AFBc89Deb098b7361ea27021347332";
-var registrarAddress = "0x66263Bf300e8ef766236D1f0EBD0c693f6A1Dd34";
+var creatorAddress = "0x45FadA7f989c6FA18c341ca833Aa09A1714A1BB5";
+var registrarAddress = "0x4d86cBc656b9F9fA1d0B5dF92b657602A45382D5";
 var creatorContract = web3.eth.contract(creatorABI).at(creatorAddress);
 var registrarContract = web3.eth.contract(registrarABI).at(registrarAddress);
 
@@ -659,8 +660,6 @@ var ballotID = 2855077743; // 投票用紙ID
 let candidates = {}; // 候補者
 
 var strTobyterser = new StringToBytes();
-
-
 
 window.onload = function () {
   // メタマスクがインストールされているかのチェック
