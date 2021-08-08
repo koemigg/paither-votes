@@ -1,7 +1,4 @@
 class StringToBytes{
-    constructor (){
-
-    }
 
     StringToBytes32(str) {
         var bytes = str.split('').map(char => char.charCodeAt(0));

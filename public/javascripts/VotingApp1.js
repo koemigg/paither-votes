@@ -639,8 +639,8 @@ var votingABI = [
   },
 ];
 
-var creatorAddress = "0xe42b0f202Db7D4E2936d55430a03aBc45b4aC11B";
-var registrarAddress = "0xF6526d05A10b29802e6D6f14cA7365c3491B06B5";
+const creatorAddress = "0x9Cd24f911A25831569B092cAaA5837D22F6d27A8";
+const registrarAddress = "0x14aFC2dcE0f16c4ffbC4675Cd36e5d376c3Ab018";
 var creatorContract = web3.eth.contract(creatorABI).at(creatorAddress);
 var registrarContract = web3.eth.contract(registrarABI).at(registrarAddress);
 
