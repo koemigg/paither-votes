@@ -996,7 +996,8 @@ window.ballotSetup = function () {
               .createBallot(enddate, ballottype, votelimit, ballotid, title, whitelist)
               .then(async function (result) {
                 // Debug 210810
-                await sleepByPromise(20);
+                const waitsec = 20;
+                await sleepByPromise(waitsec);
 
                 console.log('Ballot作成完了', '\nTX HASH: ', result);
                 creatorContract
@@ -1006,7 +1007,7 @@ window.ballotSetup = function () {
                     let votingAddress = v.toString();
                     fillSetup(votingAddress, choicesArray, whitelistedArray, whitelist, ballotid);
                     registerBallot(votingAddress, ballotid);
-                    console.log('Ballot作成完了');
+                    console.log('Ballotの情報登録完了');
                   })
                   .catch(function (error) {
                     console.error(error);
@@ -1027,99 +1028,8 @@ window.ballotSetup = function () {
     });
 };
 
-// window.ballotSetup = async function () {
-//   try {
-//     let cemail = $("#cemail").val();
-//     let emailToBytes = strTobyterser.StringToBytes32(cemail);
-
-//     let v = await registrarContract.checkVoter(emailToBytes);
-//     var voterCheck = v.toString();
-
-//     if (voterCheck == 1) {
-//       window.alert("E-mail address not registered!");
-//       //$("#msg").html("E-mail address not registered!")
-//       throw new Error('E-mail address not registered');
-//     } else if (voterCheck == 2) {
-//       window.alert("E-mail address and Ethereum address mismatch!");
-//       //$("#msg").html("E-mail address and Ethereum address mismatch!")
-//       throw new Error('E-mail address and Ethereum address mismatch.');
-//     } else {
-//       v = await registrarContract.getPermission(emailToBytes);
-//       let emailCheck = v.toString();
-//       if (emailCheck == 0) {
-//         // 作成権限がないためエラーを表示
-//         //$("#msg3").html("You are not authorized to create ballots! Please contact admin to request authorization.")
-//         window.alert("You are not authorized to create ballots! Please contact admin to request authorization.");
-//         throw new Error(cemail, " isn't authorized to create ballots.");
-//       } else {
-//         let date = $("#date").val();
-//         let enddate = Date.parse(date).getTime() / 1000;
-//         let time = $("#time").val();
-//         //Testnet is plus 7 hours
-//         //-21600 to get original end date and time on testnet
-//         let timeArray = time.split(":");
-//         //Testnet is plus 7 hours, uncomment this line if testing on testnet
-//         //var seconds = ((timeArray[0]*60)*60) + (timeArray[1]*60) + 21600
-//         let seconds = timeArray[0] * 60 * 60 + timeArray[1] * 60; // 秒数表示
-//         enddate += seconds; // 投票期限を取得
-//         let ballottype = $("input[name=ballottype]:checked").val(); // 投票形式を取得 poll or election
-//         let title = $("#vtitle").val(); // 投票タイトルを取得
-//         let choices = $("#choices").val(); // 候補者名一覧を取得
-//         var choicesArray = choices.split(/\s*,\s*/); // 候補社名をリストで取得
-//         let votelimit = $("#votelimit").val(); // 投票回数を取得
-//         let whitelist = $("input[name=whitelist]:checked").val(); // ホワイトリストの形式を取得
-//         let whitelisted = $("#whitelisted").val(); // ホワイトリストに登録したいメールアドレスを取得
-//         let whitelistedArray = whitelisted.split(/\s*,\s*/); // ホワイトリストをリスト形式で取得
-//         let ballotid = Math.floor(Math.random() * 4294967295); // 投票用紙IDをランダムで生成
-
-//         try {
-//           let result = await creatorContract.createBallot(enddate, ballottype, votelimit, ballotid, title, whitelist);
-//           console.log('Ballot作成完了', '\nTX HASH: ', result);
-//         } catch (error) {
-//           console.error(error);
-//           throw new Error('Ballot作成失敗');
-//         }
-
-//         // creatorContract.createBallot(enddate, ballottype, votelimit, ballotid, title, whitelist)
-//         //   .then(function (result) {
-//         //     console.log('Ballot作成完了', '\nTX HASH: ', result);
-//         //   })
-//         //   .catch(function (error) {
-//         //     console.error(error);
-//         //     throw new Error('Ballot作成失敗');
-//         //   });
-
-//         sleep(20000);
-//         console.log("1秒経過");
-
-//         try {
-//           v = await creatorContract.getAddress(ballotid);
-//           console.log('VotingAddress: ', v);
-//           let votingAddress = v.toString();
-//           fillSetup(votingAddress, choicesArray, whitelistedArray, whitelist, ballotid);
-//           registerBallot(votingAddress, ballotid);
-//         } catch (error) {
-//           console.error('VotingAddress, 選択肢, ホワイトリスト, BallotIDをコントラクトに登録できませんでした');
-//           console.error('エラー: ', error);
-//         }
-//       }
-//     }
-//     console.log('Ballot作成が正常に完了しました');
-//   } catch (error) {
-//     console.error(error);
-//     console.error('Ballot作成リクエストは完了しませんでした');
-//   }
-// };
-
 function sleepByPromise(sec) {
   return new Promise((resolve) => setTimeout(resolve, sec * 1000));
-}
-
-function sleep(waitMsec) {
-  var startMsec = new Date();
-
-  // 指定ミリ秒間だけループさせる（CPUは常にビジー状態）
-  while (new Date() - startMsec < waitMsec);
 }
 
 window.getVotingAddress = function () {
@@ -1170,7 +1080,6 @@ function fillCandidates(votingAddress, choicesArray) {
 
 function fillWhitelisted(votingAddress, whitelistedArray) {
   let votingContract = new ethers.Contract(votingAddress, votingABI, signer);
-  // votingContract = web3.eth.contract(votingABI).at(votingAddress);
   votingContract.setWhitelisted(strTobyterser.StringArrayToBytes32(whitelistedArray));
 }
 
@@ -1196,8 +1105,6 @@ function getCandidates(votingAddress, ballotID) {
   votingContract.getTitle().then(function (title) {
     $('#btitle').html(title);
     votingContract.candidateList(ballotID).then(function (candidateArray) {
-      if (candidateArray.length <= 0) console.log('候補者は0人です');
-
       for (let i = 0; i < candidateArray.length; i++) {
         // 連想配列candidatesのkeyに候補者名, valueに候補者名のidを設定
         candidates[web3.toUtf8(candidateArray[i])] = 'candidate-' + i;
@@ -1224,9 +1131,12 @@ window.validCandidate = function () {
   let encodeName = strTobyterser.AbiEncode(candidateName12);
   let cvHash = ethers.utils.keccak256(encodeName); // 候補者名を32bitサイズでハッシュ化
   console.log(cvHash);
-  console.log('ballotID=' + ballotID);
+  console.log('ballotID: ' + ballotID);
+
+  //TODO イベントは現在使ってないのでシンプルなValidCandidate呼び出しに変える。Returnはtrue(String), false(String)
+  //TODO イベントがEthersでどうなるか実験してみる
   creatorContract.getAddress(ballotID, (error, v) => {
-    console.log('作成したvotingアドレス=' + v);
+    console.log('作成したvotingアドレス: ' + v);
     var votingAddress = v.toString();
     let votingContract = new ethers.Contract(votingAddress, votingABI, signer);
     // var votingContract = web3.eth.contract(votingABI).at(votingAddress);
