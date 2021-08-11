@@ -7,7 +7,7 @@
 /*globals StringToBytes*/
 /*globals scientificToDecimal*/
 
-var creatorABI = [
+let creatorABI = [
   {
     constant: false,
     inputs: [
@@ -71,7 +71,7 @@ var creatorABI = [
   },
 ];
 
-var registrarABI = [
+let registrarABI = [
   {
     inputs: [
       {
@@ -276,7 +276,7 @@ var registrarABI = [
   },
 ];
 
-var votingABI = [
+let votingABI = [
   {
     inputs: [
       {
@@ -657,14 +657,14 @@ let signer;
 let creatorContract;
 let registrarContract;
 
-var input1 = 1;
-var input2 = 0;
+let input1 = 1;
+let input2 = 0;
 
-var ballotID; // 投票用紙ID
+let ballotID; // 投票用紙ID
 
 let candidates = {}; // 候補者
 
-var strTobyterser = new StringToBytes();
+let strTobyterser = new StringToBytes();
 
 window.onload = function () {
   // メタマスクがインストールされているかのチェック
@@ -731,8 +731,8 @@ window.registerToVote = async function () {
     permreq = 0;
   }
 
-  var emailToBytes = strTobyterser.StringToBytes32(email);
-  var domain = strTobyterser.StringToBytes32(email.replace(/.*@/, '')); // ドメイン部分だけを格納
+  let emailToBytes = strTobyterser.StringToBytes32(email);
+  let domain = strTobyterser.StringToBytes32(email.replace(/.*@/, '')); // ドメイン部分だけを格納
 
   // メールアドレスのドメインがホワイトリストに登録されているかチェック
   try {
@@ -746,7 +746,7 @@ window.registerToVote = async function () {
 
     // ユーザが既に登録済みかチェック
     value = await registrarContract.checkReg(emailToBytes, idNumber);
-    var emailValid = value.toString();
+    let emailValid = value.toString();
 
     if (emailValid == 'false') {
       // 既に登録済みであればエラーを表示
@@ -769,44 +769,31 @@ window.registerToVote = async function () {
   }
 };
 
-window.voteForCandidate = function (candidate) {
+window.voteForCandidate = function () {
   let candidateName = $('#candidate').val(); // 入力された候補者名を取得
   let email = $('#e-mail').val(); // 入力されたe-mailアドレスを取得
-  var emailToBytes = strTobyterser.StringToBytes32(email);
+  let emailToBytes = strTobyterser.StringToBytes32(email);
   $('#msg2').html(''); // 該当場所のメッセージを初期化
   $('#msg4').html('');
 
-  var domain = email.replace(/.*@/, ''); // e-mailのドメイン部分を格納
+  let domain = email.replace(/.*@/, ''); // e-mailのドメイン部分を格納
   domain = strTobyterser.StringToBytes32(domain);
 
-  var encodeName = strTobyterser.AbiEncode(candidateName);
-  var cHash = ethers.utils.keccak256(encodeName); // 候補者名を32bitサイズでハッシュ化
+  let encodeName = strTobyterser.AbiEncode(candidateName);
+  let cHash = ethers.utils.keccak256(encodeName); // 候補者名を32bitサイズでハッシュ化
 
-  var votesArray = [];
+  let votesArray = [];
 
-  registrarContract.checkVoter(emailToBytes, (error, v) => {
-    var voterCheck = v.toString();
-
-    if (voterCheck == 1) {
-      // 未登録であればエラーを表示
-      window.alert('E-mail address not registered!');
-      //$("#msg").html("E-mail address not registered!")
-      throw new Error();
-    } else if (voterCheck == 2) {
-      // メールアドレスとコントラクトアドレスが適合していなければエラーを表示
-      window.alert('E-mail address and Ethereum address mismatch!');
-      //$("#msg").html("E-mail address and Ethereum address mismatch!")
-      throw new Error();
-    }
-
-    creatorContract.getAddress(ballotID, (error, v) => {
-      var votingAddress = v.toString();
+  //TODO チェック機能をリファクタリングする
+  registrarContract.checkVoter(emailToBytes).then(function (v) {
+    checkVoter(v.toString());
+    creatorContract.getAddress(ballotID).then(function (v) {
+      let votingAddress = v.toString();
       let votingContract = new ethers.Contract(votingAddress, votingABI, signer);
-      // var votingContract = web3.eth.contract(votingABI).at(votingAddress);
-      votingContract.checkWhitelist((error, v) => {
+      votingContract.checkWhitelist().then(function (v) {
         let wc1 = v.toString();
         // 投票者のメールアドレスがホワイトリストに登録されているかをチェック
-        votingContract.checkifWhitelisted(emailToBytes, (error, v) => {
+        votingContract.checkifWhitelisted(emailToBytes).then(function (v) {
           let wc2 = v.toString();
           if (wc1 == 'true' && wc2 == 'false') {
             window.alert("You're are not authorized to vote on this ballot!");
@@ -814,8 +801,8 @@ window.voteForCandidate = function (candidate) {
             throw new Error();
           } else {
             // 投票した候補者名が今回の候補者リストに存在するかチェック
-            votingContract.validCandidate(cHash, (error, v) => {
-              var canValid = v.toString();
+            votingContract.validCandidate(cHash).then(function (v) {
+              let canValid = v.toString();
 
               if (canValid == 'false') {
                 window.alert('Invalid Candidate!');
@@ -824,8 +811,8 @@ window.voteForCandidate = function (candidate) {
               }
 
               // 投票回数の上限に達しているかをチェック
-              votingContract.checkVoteattempts((error, v) => {
-                var attempCheck = v.toString();
+              votingContract.checkVoteattempts().then(function (v) {
+                let attempCheck = v.toString();
 
                 if (attempCheck == 'false') {
                   window.alert('You have reached your voting limit for this ballot/poll!');
@@ -840,11 +827,11 @@ window.voteForCandidate = function (candidate) {
                 $('#candidate').val('');
                 $('#e-mail').val('');
 
-                votingContract.candidateList(ballotID, (error, candidateArray) => {
+                votingContract.candidateList(ballotID).then(function (candidateArray) {
                   for (let i = 0; i < candidateArray.length; i++) {
-                    var hcand = web3.toUtf8(candidateArray[i]);
+                    let hcand = web3.toUtf8(candidateArray[i]);
                     console.log('hcand=' + hcand);
-                    var encodeName = strTobyterser.AbiEncode(hcand);
+                    let encodeName = strTobyterser.AbiEncode(hcand);
                     let hcHash = ethers.utils.keccak256(encodeName);
 
                     if (hcHash == cHash) {
@@ -864,15 +851,15 @@ window.voteForCandidate = function (candidate) {
 };
 
 function encrypt(hcHash, vnum, i, candidateArray, email, votingAddress, votesArray) {
-  var einput1;
+  let einput1;
   $.ajax({
     type: 'GET',
     url: 'http://localhost:3000/crypto/encrypt/' + vnum, // 投票文を暗号化
     success: function (eoutput1) {
       let votingContract = new ethers.Contract(votingAddress, votingABI, signer);
-      // var votingContract = web3.eth.contract(votingABI).at(votingAddress);
-      votingContract.votesFor(hcHash, (error, v) => {
-        var convVote = v;
+      // let votingContract = web3.eth.contract(votingABI).at(votingAddress);
+      votingContract.votesFor(hcHash).then(function (v) {
+        let convVote = v;
         einput1 = convVote;
         console.log('einput1=' + einput1);
         einput1 = scientificToDecimal(einput1); // 10進数表記
@@ -881,17 +868,6 @@ function encrypt(hcHash, vnum, i, candidateArray, email, votingAddress, votesArr
           // 集計結果が0でなければ, 今回の投票文を加算する
           add(eoutput1, einput1, i, candidateArray, email, votingAddress, votesArray);
         }
-        // var VotesCounts = votingContract.VotesCounts();
-        //   VotesCounts.watch(function (error, result){
-        //     var convVote = result.args._votesReceived.toString();
-        //     einput1 = convVote; // 暗号化された集計結果を取得
-        //     console.log("einput1="+einput1);
-        //     einput1 = scientificToDecimal(einput1)  // 10進数表記
-
-        //     if (einput1 != 0) { // 集計結果が0でなければ, 今回の投票文を加算する
-        //       add(eoutput1, einput1, i, candidateArray, email, votingAddress, votesArray)
-        //     }
-        // });
       });
     },
   });
@@ -910,12 +886,11 @@ function add(eoutput1, einput1, i, candidateArray, email, votingAddress, votesAr
 
 function verifyTimestamp(eadd1, i, candidateArray, email, votingAddress, votesArray) {
   let votingContract = new ethers.Contract(votingAddress, votingABI, signer);
-  // var votingContract = web3.eth.contract(votingABI).at(votingAddress);
-  votingContract.checkTimelimit((error, v) => {
-    var timecheck = v.toString();
+  votingContract.checkTimelimit().then(function (v) {
+    let timecheck = v.toString();
     if (timecheck == 'false') {
-      votingContract.getTimelimit((error, v) => {
-        var endtime = v.toString(); // 制限時間の取得
+      votingContract.getTimelimit().then(function (v) {
+        let endtime = v.toString(); // 制限時間の取得
         //Testnet is plus 7 hours, uncomment this line if testing on testnet
         //endtime = endtime - 21600
         endtime = new Date(endtime * 1000);
@@ -930,20 +905,25 @@ function verifyTimestamp(eadd1, i, candidateArray, email, votingAddress, votesAr
       if (i == candidateArray.length - 1) {
         // 最後の候補者名まで処理がされていれば,以下の処理
         // 投票者の各候補者に対する投票内容をコントラクトに登録する
-        vote(i, candidateArray, email, votingAddress, votesArray);
+        vote(candidateArray, email, votingAddress, votesArray);
       }
     }
   });
 }
 
-function vote(i, candidateArray, email, votingAddress, votesArray) {
+function vote(candidateArray, email, votingAddress, votesArray) {
+  // debug
+  console.log(typeof email);
+  console.log(email);
+
   let votingContract = new ethers.Contract(votingAddress, votingABI, signer);
-  // var votingContract = web3.eth.contract(votingABI).at(votingAddress);
-  votingContract.voteForCandidate(votesArray, email, candidateArray, (error, v) => {
-    getVotes(votingAddress); // 投票結果を表に表示
-    $('#msg').html('');
-    window.alert('Your vote has been verified!');
-  });
+  votingContract
+    .voteForCandidate(votesArray, web3StringToBytes32(email), candidateArray)
+    .then(function () {
+      getVotes(votingAddress); // 投票結果を表に表示
+      $('#msg').html('');
+      window.alert('Your vote has been verified!');
+    });
 }
 
 window.ballotSetup = function () {
@@ -953,7 +933,7 @@ window.ballotSetup = function () {
   registrarContract
     .checkVoter(emailToBytes)
     .then(function (v) {
-      var voterCheck = v.toString();
+      let voterCheck = v.toString();
 
       if (voterCheck == 1) {
         window.alert('E-mail address not registered!');
@@ -979,7 +959,7 @@ window.ballotSetup = function () {
             //-21600 to get original end date and time on testnet
             let timeArray = time.split(':');
             //Testnet is plus 7 hours, uncomment this line if testing on testnet
-            //var seconds = ((timeArray[0]*60)*60) + (timeArray[1]*60) + 21600
+            //let seconds = ((timeArray[0]*60)*60) + (timeArray[1]*60) + 21600
             let seconds = timeArray[0] * 60 * 60 + timeArray[1] * 60; // 秒数表示
             enddate += seconds; // 投票期限を取得
             let ballottype = $('input[name=ballottype]:checked').val(); // 投票形式を取得 poll or election
@@ -1005,7 +985,7 @@ window.ballotSetup = function () {
                   .then(function (v) {
                     console.log('VotingAddress: ', v);
                     let votingAddress = v.toString();
-                    fillSetup(votingAddress, choicesArray, whitelistedArray, whitelist, ballotid);
+                    fillSetup(votingAddress, choicesArray, whitelistedArray, whitelist);
                     registerBallot(votingAddress, ballotid);
                     console.log('Ballotの情報登録完了');
                   })
@@ -1033,13 +1013,12 @@ function sleepByPromise(sec) {
 }
 
 window.getVotingAddress = function () {
-  var ballotid1 = $('#votingAddress').val();
+  let ballotid1 = $('#votingAddress').val();
   creatorContract.getAddress(ballotid1, (error, v) => {
     console.log('作成したvotingアドレス=' + v);
   });
 };
 
-// Votingコントラクトのアドレスと投票用紙idをRegistrarコントラクトに登録
 function registerBallot(votingaddress, ballotid) {
   registrarContract
     .setAddress(votingaddress, ballotid)
@@ -1058,7 +1037,7 @@ function registerBallot(votingaddress, ballotid) {
 }
 
 // Candidate, Whitelistをコントラクトに登録
-function fillSetup(votingAddress, choicesArray, whitelistedArray, whitelist, ballotid) {
+function fillSetup(votingAddress, choicesArray, whitelistedArray, whitelist) {
   fillCandidates(votingAddress, choicesArray);
   if (whitelist == 1) {
     fillWhitelisted(votingAddress, whitelistedArray);
@@ -1084,8 +1063,8 @@ function fillWhitelisted(votingAddress, whitelistedArray) {
 }
 
 window.AddDomain = () => {
-  var domain = $('#domainAdress').val();
-  var domainBytes32 = strTobyterser.StringToBytes32(domain);
+  let domain = $('#domainAdress').val();
+  let domainBytes32 = strTobyterser.StringToBytes32(domain);
 
   registrarContract
     .addDomains(domainBytes32)
@@ -1099,9 +1078,7 @@ window.AddDomain = () => {
 };
 
 function getCandidates(votingAddress, ballotID) {
-  let votingContract = new ethers.Contract(votingAddress, votingABI, signer);
-  console.log('getCandidates中');
-
+  const votingContract = new ethers.Contract(votingAddress, votingABI, signer);
   votingContract.getTitle().then(function (title) {
     $('#btitle').html(title);
     votingContract.candidateList(ballotID).then(function (candidateArray) {
@@ -1113,10 +1090,8 @@ function getCandidates(votingAddress, ballotID) {
       getVotes(votingAddress);
     });
   });
-  console.log('getCandidates終了');
 }
 
-// テーブルの表示をする
 function setupTable() {
   Object.keys(candidates).forEach(function (candidate) {
     // 該当テーブルにcandidatesのkeyを一覧表示して, 各要素にidを設定する
@@ -1127,7 +1102,7 @@ function setupTable() {
 }
 
 window.validCandidate = function () {
-  var candidateName12 = $('#candidateName12').val();
+  let candidateName12 = $('#candidateName12').val();
   let encodeName = strTobyterser.AbiEncode(candidateName12);
   let cvHash = ethers.utils.keccak256(encodeName); // 候補者名を32bitサイズでハッシュ化
   console.log(cvHash);
@@ -1135,31 +1110,18 @@ window.validCandidate = function () {
 
   //TODO イベントは現在使ってないのでシンプルなValidCandidate呼び出しに変える。Returnはtrue(String), false(String)
   //TODO イベントがEthersでどうなるか実験してみる
-  creatorContract.getAddress(ballotID, (error, v) => {
-    console.log('作成したvotingアドレス: ' + v);
-    var votingAddress = v.toString();
-    let votingContract = new ethers.Contract(votingAddress, votingABI, signer);
-    // var votingContract = web3.eth.contract(votingABI).at(votingAddress);
-    // var subscription = web3.eth.subscribe('logs', {
-    //   address: votingAddress
-    // }, function(error, result){
-    //   if (!error)
-    //       console.log(result);
-    // });
-    votingContract.validCandidate(cvHash, function (error, result) {
-      // votingContract.once('Bool', {
-      //   fromBlock: 0
-      // }, function(error, event){ console.log(event); });
-      var boolEvent = votingContract.Bool({ fromBlock: 308, toBlock: 308 });
-      var cnt = 0;
-      boolEvent.watch((error, result) => {
-        cnt++;
-        console.log(result.args.judge);
-        // console.log("cnt="+cnt);
-        if (cnt == 2) {
-          boolEvent.stopWatching();
-        }
-      });
+  creatorContract.getAddress(ballotID).then(function (votingAddress_byte) {
+    console.log('投票コントラクトの取得成功' + '\nVoting Address: ' + votingAddress_byte);
+    const votingContract = new ethers.Contract(votingAddress_byte.toString(), votingABI, signer);
+    votingContract.validCandidate(cvHash).then(function (resultBoolStr) {
+      console.log('候補者/選択肢の有効性の検証完了');
+      if (resultBoolStr.toString() == 'true') {
+        console.log('結果: 有効');
+      } else if (resultBoolStr.toString() == 'false') {
+        console.log('結果: 無効');
+      } else {
+        console.log('予期しない戻り値: ', resultBoolStr.toString());
+      }
     });
   });
 };
@@ -1174,7 +1136,7 @@ function getVotes(votingAddress) {
     votingContract.totalVotesFor(cvHash).then(function (convVote) {
       if (convVote == 0) {
         votingContract.getTimelimit().then(function (result) {
-          var endtime = result.toString();
+          let endtime = result.toString();
           endtime = new Date(endtime * 1000);
           $('#msg').html(
             'Results will be displayed once the voting period has ended (' + endtime + ')'
@@ -1190,15 +1152,39 @@ function getVotes(votingAddress) {
   });
 }
 
-// convVoteを復号し, id=nameのセルに復号結果を表示
 function decrypt(convVote, name) {
   $.ajax({
     type: 'GET',
     url: 'http://localhost:3000/crypto/decrypt/' + convVote,
     success: function (eoutput) {
       console.log('復号完了');
-      var voteNum = eoutput; // 復号結果を格納
+      let voteNum = eoutput; // 復号結果を格納
       $('#' + candidates[name]).html(voteNum.toString()); // 該当idに投票結果を表示
     },
   });
+}
+
+function checkVoter(voterCheck) {
+  if (voterCheck == 1) {
+    // 未登録であればエラーを表示
+    window.alert('E-mail address not registered!');
+    //$("#msg").html("E-mail address not registered!")
+    throw new Error();
+  } else if (voterCheck == 2) {
+    // メールアドレスとコントラクトアドレスが適合していなければエラーを表示
+    window.alert('E-mail address and Ethereum address mismatch!');
+    //$("#msg").html("E-mail address and Ethereum address mismatch!")
+    throw new Error();
+  }
+}
+
+function web3StringToBytes32(text) {
+  let result = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(text));
+  while (result.length < 66) {
+    result += '0';
+  }
+  if (result.length !== 66) {
+    throw new Error('invalid web3 implicit bytes32');
+  }
+  return result;
 }

@@ -913,6 +913,10 @@ function verifyTimestamp(eadd1, i, candidateArray, email, votingAddress, votesAr
 
 function vote(i, candidateArray, email, votingAddress, votesArray) {
   var votingContract = web3.eth.contract(votingABI).at(votingAddress);
+  // debug
+  console.log(typeof email);
+  console.log(email);
+
   votingContract.voteForCandidate(votesArray, email, candidateArray, (error, v) => {
     getVotes(votingAddress); // 投票結果を表に表示
     $('#msg').html('');
