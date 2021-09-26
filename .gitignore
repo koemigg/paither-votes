@@ -171,3 +171,4 @@ dist
 # Personal Settings
 
 public/javascripts/Ethers-Test.js
+public/javascripts/StringToBytes.js
