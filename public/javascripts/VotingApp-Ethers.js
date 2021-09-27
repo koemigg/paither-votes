@@ -7,6 +7,19 @@
 
 let creatorABI = [
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'contractAddress',
+        type: 'address',
+      },
+    ],
+    name: 'newVotingContractEvent',
+    type: 'event',
+  },
+  {
     constant: false,
     inputs: [
       {
@@ -646,8 +659,8 @@ let votingABI = [
   },
 ];
 
-const creatorAddress = '0x9Cd24f911A25831569B092cAaA5837D22F6d27A8';
-const registrarAddress = '0x14aFC2dcE0f16c4ffbC4675Cd36e5d376c3Ab018';
+const creatorAddress = '0xE94B2E0D54c411D94846Cb65A84c2dbA1EDE1B3F';
+const registrarAddress = '0x5945c721FDEed6F6682662d1bBa028482a19B1E7';
 
 let ethersProvider;
 let signer;
@@ -685,6 +698,11 @@ const initialize = () => {
         ethersProvider = new ethers.providers.Web3Provider(window.ethereum);
         signer = ethersProvider.getSigner();
         creatorContract = new ethers.Contract(creatorAddress, creatorABI, signer);
+        creatorContract.on('newVotingContractEvent', function (contractAddress) {
+          $('#loader').hide();
+          console.log('"newVotingContractEvent"が発火しました');
+          console.log('VotingAddress: ' + contractAddress);
+        });
         registrarContract = new ethers.Contract(registrarAddress, registrarABI, signer);
       }
     } catch (error) {
@@ -937,6 +955,7 @@ window.ballotSetup = function () {
   let cemail = $('#cemail').val();
   // let emailToBytes = strTobyterser.StringToBytes32(cemail);
   let emailToBytes = web3StringToBytes32(cemail);
+  $('#loader').show();
 
   registrarContract
     .checkVoter(emailToBytes)
@@ -969,12 +988,27 @@ window.ballotSetup = function () {
             let whitelistedArray = whitelisted.split(/\s*,\s*/); // ホワイトリストをリスト形式で取得
             let ballotid = Math.floor(Math.random() * 4294967295); // 投票用紙IDをランダムで生成
 
+            //Debug 210927
+            // let newVotingContractEvent = creatorContract.newVotingContractEvent();
+            // newVotingContractEvent.watch(function (error, result) {
+            //   console.log('watching "newVotingContractEvent" event!');
+            //   if (!error) {
+            //     $('#loader').hide();
+            //     // $('#contractaddress').html('Contract: ' + result.args.contractAddress);
+            //     console.log('VotingAddress(イベントが発火しました): ' + result.args.contractAddress);
+            //   } else {
+            //     $('#loader').hide();
+            //     console.log(error);
+            //   }
+            // });
+
             creatorContract
               .createBallot(enddate, ballottype, votelimit, ballotid, title, whitelist)
               .then(async function (result) {
                 // Debug 210810
                 const waitsec = 20;
                 await sleepByPromise(waitsec);
+                console.log('20秒経過');
 
                 console.log('Ballot作成完了', '\nTX HASH: ', result);
                 creatorContract
@@ -1075,17 +1109,6 @@ function getCandidates(votingAddress, ballotID) {
     $('#btitle').html(title);
     votingContract.candidateList(ballotID).then(function (candidateArray) {
       for (let i = 0; i < candidateArray.length; i++) {
-        // 連想配列candidatesのkeyに候補者名, valueに候補者名のidを設定
-        // console.log('debug: web3.toUtf8(candidateArray[' + i + ']) = ' + web3.toUtf8(candidateArray[i]));
-        // console.log('debug: Type of web3.toUtf8(candidateArray[' + i + ']) = ' + typeof web3.toUtf8(candidateArray[i]));
-        // console.log('debug: ethers.utils.toUtf8String(candidateArray[' + i + ']) = ' + ethers.utils.toUtf8String(candidateArray[i]));
-        // console.log('debug: Type of ethers.utils.toUtf8String(candidateArray[' + i + ']) = ' + typeof ethers.utils.toUtf8String(candidateArray[i]));
-        // console.log('debug: Equality: ' + (web3.toUtf8(candidateArray[i]) == ethers.utils.toUtf8String(candidateArray[i])));
-        // console.log('debug: Strict equality: ' + (web3.toUtf8(candidateArray[i]) === ethers.utils.toUtf8String(candidateArray[i])));
-        // candidates[ethers.utils.toUtf8String(candidateArray[i])] = 'candidate-' + i;
-        // console.log('Length: ' + [web3.toUtf8(candidateArray[i]).length, ethers.utils.toUtf8String(candidateArray[i]).length]);
-        // console.log('Byte length: ' + [web3.toUtf8(candidateArray[i]).bytes(), ethers.utils.toUtf8String(candidateArray[i]).bytes()]);c
-        // candidates[web3.toUtf8(candidateArray[i])] = 'candidate-' + i;
         candidates[ethers.utils.parseBytes32String(candidateArray[i])] = 'candidate-' + i;
       }
       setupTable();
@@ -1093,20 +1116,6 @@ function getCandidates(votingAddress, ballotID) {
     });
   });
 }
-
-// debug
-String.prototype.bytes = function () {
-  var length = 0;
-  for (var i = 0; i < this.length; i++) {
-    var c = this.charCodeAt(i);
-    if ((c >= 0x0 && c < 0x81) || c === 0xf8f0 || (c >= 0xff61 && c < 0xffa0) || (c >= 0xf8f1 && c < 0xf8f4)) {
-      length += 1;
-    } else {
-      length += 2;
-    }
-  }
-  return length;
-};
 
 function setupTable() {
   Object.keys(candidates).forEach(function (candidate) {
@@ -1123,7 +1132,6 @@ window.validCandidate = function () {
   console.log(cvHash);
   console.log('ballotID: ' + ballotID);
 
-  //TODO イベントは現在使ってないのでシンプルなValidCandidate呼び出しに変える。Returnはtrue(String), false(String)
   //TODO イベントがEthersでどうなるか実験してみる
   creatorContract.getAddress(ballotID).then(function (votingAddress_byte) {
     console.log('投票コントラクトの取得成功' + '\nVoting Address: ' + votingAddress_byte);
