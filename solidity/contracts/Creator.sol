@@ -6,7 +6,7 @@ contract Voting {
     event VotesCounts(uint256 _votesReceived);
     // 投票用紙情報をまとめた構造体
     struct Ballot {
-        uint8 ballotType;   // 投票用紙の形式? election(選択式) or poll(記述式) 
+        uint8 ballotType;   // 投票用紙の形式? election(選択式) or poll(記述式)
         uint32 ballotId;    // 特定のVotingコントラクトにアクセスするための値
         uint8 voteLimit;    // 投票回数?
         uint32 timeLimit;   // 投票期間?
@@ -23,7 +23,7 @@ contract Voting {
 
     // 投票者情報をまとめた構造体
     struct Voter {
-        bytes32[] whitelisted;                       // ホワイトリストのemailアドレス 
+        bytes32[] whitelisted;                       // ホワイトリストのemailアドレス
         mapping (address => uint8) attemptedVotes;  // 各アドレスに対応する投票者の現在の投票回数
     }
 
@@ -43,7 +43,7 @@ contract Voting {
 
     // コンストラクタ : コントラクトを作成する際に呼び出される. いくつかのパラメータの初期値を設定
     // uint32 _timeLimit  : 投票期間?
-    // uint8  _ballotType : 投票用紙の形式? election(選択式) or poll(記述式) 
+    // uint8  _ballotType : 投票用紙の形式? election(選択式) or poll(記述式)
     // uint8  _voteLimit  : 投票回数?
     // uint32 _ballotId   : 特定のVotingコントラクトにアクセスするための値
     // stting _title      : タイトル
@@ -51,7 +51,7 @@ contract Voting {
     // address _owner     : 管理者のアドレス
     constructor (uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whitelist, address _owner) public {
         // 投票用紙情報をまとめている構造体bに各パラメータを設定
-        b.timeLimit = _timeLimit;   
+        b.timeLimit = _timeLimit;
         b.ballotType = _ballotType;
         b.voteLimit = _voteLimit;
         b.ballotId = _ballotId;
@@ -62,7 +62,7 @@ contract Voting {
     }
 
     // modifier処理を設定
-    // このmodifierがついたメソッドを呼び出したユーザーが管理者アドレスと一致するかを確認する. 
+    // このmodifierがついたメソッドを呼び出したユーザーが管理者アドレスと一致するかを確認する.
     // 一致すれば処理を続行, 一致しなければ処理をその時点で終了し, contractの状態を実行前に戻す
     modifier onlyOwner {
         require(msg.sender == owner);
@@ -102,37 +102,37 @@ contract Voting {
     // bytes32[] _candidates : 投票者が使用した候補者リスト
     // bytes32 _email : 投票するユーザーのメールアドレス
     function voteForCandidate(uint256[] memory _votes, bytes32 _email, bytes32[] memory _candidates) public {
-        if (checkTimelimit() == false || checkVoteattempts() == false) revert();        // 投票回数の上限に既に達しているか, 投票期間が終了していた場合処理を終了する. 
-        if (checkWhitelist() == true && checkifWhitelisted(_email) == false) revert();  //  ホワイトリストに入力_emailが登録されていなかったら処理を終了する. 
+        if (checkTimelimit() == false || checkVoteattempts() == false) revert();        // 投票回数の上限に既に達しているか, 投票期間が終了していた場合処理を終了する.
+        if (checkWhitelist() == true && checkifWhitelisted(_email) == false) revert();  //  ホワイトリストに入力_emailが登録されていなかったら処理を終了する.
         tempVotes = _votes;
         tempCandidates = _candidates;       // 候補者リストを一時保存
         v.attemptedVotes[msg.sender] += 1;  // このメソッドを呼び出したユーザ(投票した人)の投票回数を+1する
 
         for(uint i = 0; i < tempCandidates.length; i++) {
-            tempCandidate = tempCandidates[i];  
+            tempCandidate = tempCandidates[i];
             tempHash = c.candidateHash[tempCandidate]; // 候補者名のハッシュ値を格納
             if (validCandidate(tempHash) == false) revert();    // このコントラクトにある候補者リストにtempHashに対応する候補者が入っていなければ処理を終了する
-            tempVote = tempVotes[i];    
+            tempVote = tempVotes[i];
             c.votesReceived[tempHash] = tempVote;   // 候補者に対応する投票結果を保存
         }
     }
 
     // 入力bytes32 cHashに対応するvotesReceived(途中結果の投票数?)を出力する
     function votesFor(bytes32 cHash) public view returns (uint256){
-        if (validCandidate(cHash) == false) revert();   // 入力されている候補者がこのコントラクトのリストに登録されていなければ処理を終了する. 
-        // emit VotesCounts(c.votesReceived[cHash]); 
+        if (validCandidate(cHash) == false) revert();   // 入力されている候補者がこのコントラクトのリストに登録されていなければ処理を終了する.
+        // emit VotesCounts(c.votesReceived[cHash]);
         return c.votesReceived[cHash];
     }
 
     // 入力bytes32 cHashに対応するvotesReceived(集計結果?)を出力する　
     function totalVotesFor(bytes32 cHash) public view returns (uint256){
         if (checkBallottype() == false && checkTimelimit() == true){
-            // emit VotesCounts(0); 
-            return 0;   // 投票期間中で,   
-        } 
-        if (validCandidate(cHash) == false) revert();   // 入力されている候補者がこのコントラクトのリストに登録されていなければ処理を終了する. 
-        // emit VotesCounts(c.votesReceived[cHash]); 
-        return c.votesReceived[cHash];  
+            // emit VotesCounts(0);
+            return 0;   // 投票期間中で,
+        }
+        if (validCandidate(cHash) == false) revert();   // 入力されている候補者がこのコントラクトのリストに登録されていなければ処理を終了する.
+        // emit VotesCounts(c.votesReceived[cHash]);
+        return c.votesReceived[cHash];
     }
 
     // 入力値bytes32 xをstring型に変換
@@ -158,11 +158,11 @@ contract Voting {
         for(uint k = 0; k < c.candidateList.length; k++) {
             // tempCandidate = c.candidateList[k];
             if (c.candidateHash[c.candidateList[k]] == cHash) {
-                // emit Bool(true); 
+                // emit Bool(true);
                 return true;
             }
         }
-        // emit Bool(false); 
+        // emit Bool(false);
         return false;
     }
 
@@ -177,24 +177,24 @@ contract Voting {
     // タイムリミットを超えていた場合: false
     // タイムリミットを超えていない場合: true
     function checkTimelimit() public view returns (bool) {
-        if (block.timestamp >= b.timeLimit) return false;   
+        if (block.timestamp >= b.timeLimit) return false;
         else return true;
     }
 
-    // 設定したballotTypeをチェックする. 
+    // 設定したballotTypeをチェックする.
     function checkBallottype() public view returns (bool) {
         if (b.ballotType == 1) return false;
         else return true;
     }
 
-    // 入力された投票用紙IDと最初に設定した投票用紙IDが一致するかをチェックする. 
+    // 入力された投票用紙IDと最初に設定した投票用紙IDが一致するかをチェックする.
     // 一致すればtrue, しなければfalse
     function checkballotID(uint64 ballotID) public view returns (bool) {
         if (ballotID == b.ballotId) return true;
         else return false;
     }
 
-    // このメソッドを呼び出したユーザーが, 投票回数の上限に達しているかをチェックする. 
+    // このメソッドを呼び出したユーザーが, 投票回数の上限に達しているかをチェックする.
     // 達していなければtrue, 達していればfalse
     function checkVoteattempts() public view returns (bool) {
         if (v.attemptedVotes[msg.sender] == b.voteLimit) return false;
@@ -207,17 +207,17 @@ contract Voting {
         else return false;
     }
 
-    // 入力値bytes32 emailが, whitelistedに登録されているかをチェックする. 
+    // 入力値bytes32 emailが, whitelistedに登録されているかをチェックする.
     // 登録されていればtrue, されていなければfalse
     function checkifWhitelisted(bytes32 email) public returns (bool) {
         for(uint j = 0; j < v.whitelisted.length; j++) {
             // tempEmail = v.whitelisted[j];
             if ( v.whitelisted[j] == email) {
-                // emit Bool(true); 
+                // emit Bool(true);
                 return true;
             }
         }
-        // emit Bool(false); 
+        // emit Bool(false);
         return false;
     }
 
@@ -247,7 +247,7 @@ contract Creator {
 
     // Votingコントラクトの設定パラメータを入力して作成, contractsに格納するメソッド
     // uint32 _timeLimit  : 投票期間?
-    // uint8  _ballotType : 投票用紙の形式?  election(選択式)1 or poll(記述式)0 
+    // uint8  _ballotType : 投票用紙の形式?  election(選択式)1 or poll(記述式)0
     // uint8  _voteLimit  : 投票回数?
     // uint32 _ballotId   : 特定のVotingコントラクトにアクセスするための値
     // string _title      : タイトル

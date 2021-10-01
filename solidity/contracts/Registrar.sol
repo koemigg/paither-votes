@@ -10,7 +10,7 @@ contract Registrar {
         mapping (bytes32 => uint8) createPerm;  // e-mailアドレスに対応する権限?を保存
         mapping (bytes32 => uint16) voterID;    // e-mailアドレスに対応する学生/従業員ID番号を保存
         mapping (uint16 => bytes32) voterEmail; // 学生/従業員ID番号を保存
-    }   
+    }
 
     // 投票用紙情報をまとめた構造体
     struct Ballot {
@@ -20,7 +20,7 @@ contract Registrar {
         mapping (bytes32 => uint8) allowedVoters;
     }
 
-    Voter v;    
+    Voter v;
     Ballot b;
     address owner;  // 管理者のアドレス
 
@@ -32,7 +32,7 @@ contract Registrar {
     }
 
     // modifier処理を設定
-    // このmodifierがついたメソッドを呼び出したユーザーが管理者アドレスと一致するかを確認する. 
+    // このmodifierがついたメソッドを呼び出したユーザーが管理者アドレスと一致するかを確認する.
     // 一致すれば処理を続行, 一致しなければ処理をその時点で終了し, contractの状態を実行前に戻す
     modifier onlyOwner {
         require(msg.sender == owner);
@@ -88,7 +88,7 @@ contract Registrar {
     function checkVoter(bytes32 email) public view returns (uint8) {
         if (v.voterID[email] == 0) return 1;            // 登録処理が行われていない場合1を返す
         // メールアドレスに紐付いているEthreumアカウントアドレスとメソッドを呼び出した投票者のEthereumアカウントアドレスが一致しなければ2を返す
-        if (v.voterAddr[email] != msg.sender) return 2; 
+        if (v.voterAddr[email] != msg.sender) return 2;
         else return 0;  // 他の状態であれば0を返す
     }
 
