@@ -699,9 +699,7 @@ const initialize = () => {
         signer = ethersProvider.getSigner();
         creatorContract = new ethers.Contract(creatorAddress, creatorABI, signer);
         creatorContract.on('newVotingContractEvent', function (contractAddress) {
-          $('#loader').hide();
-          console.log('"newVotingContractEvent"が発火しました');
-          console.log('VotingAddress: ' + contractAddress);
+          setVotingInfo(contractAddress);
         });
         registrarContract = new ethers.Contract(registrarAddress, registrarABI, signer);
       }
@@ -720,6 +718,21 @@ const initialize = () => {
     }
   };
   MetaMaskClientCheck();
+};
+
+const setVotingInfo = async function (votingAddress) {
+  $('#loader').hide();
+  console.log('"newVotingContractEvent"が発火しました');
+  console.log('Votingコントラクトがデプロイされました');
+  console.log('VotingAddress: ' + votingAddress);
+  let choices = $('#choices').val(); // 候補者名一覧
+  let choicesArray = choices.split(/\s*,\s*/); // 候補者名(Array)
+  let whitelist = $('input[name=whitelist]:checked').val(); // ホワイトリストの形式
+  let whitelisted = $('#whitelisted').val(); // ホワイトリストに登録するメールアドレス
+  let whitelistedArray = whitelisted.split(/\s*,\s*/); // ホワイトリスト(Array)
+  fillSetup(votingAddress, choicesArray, whitelistedArray, whitelist);
+  registerBallot(votingAddress, ballotID);
+  console.log('Votingへの情報登録完了');
 };
 
 window.addEventListener('DOMContentLoaded', initialize);
@@ -980,55 +993,11 @@ window.ballotSetup = function () {
             enddate += seconds; // 投票期限を取得
             let ballottype = $('input[name=ballottype]:checked').val(); // 投票形式を取得 poll or election
             let title = $('#vtitle').val(); // 投票タイトルを取得
-            let choices = $('#choices').val(); // 候補者名一覧を取得
-            let choicesArray = choices.split(/\s*,\s*/); // 候補社名をリストで取得
             let votelimit = $('#votelimit').val(); // 投票回数を取得
             let whitelist = $('input[name=whitelist]:checked').val(); // ホワイトリストの形式を取得
-            let whitelisted = $('#whitelisted').val(); // ホワイトリストに登録したいメールアドレスを取得
-            let whitelistedArray = whitelisted.split(/\s*,\s*/); // ホワイトリストをリスト形式で取得
-            let ballotid = Math.floor(Math.random() * 4294967295); // 投票用紙IDをランダムで生成
+            ballotID = Math.floor(Math.random() * 4294967295); // 投票用紙IDをランダムで生成
 
-            //Debug 210927
-            // let newVotingContractEvent = creatorContract.newVotingContractEvent();
-            // newVotingContractEvent.watch(function (error, result) {
-            //   console.log('watching "newVotingContractEvent" event!');
-            //   if (!error) {
-            //     $('#loader').hide();
-            //     // $('#contractaddress').html('Contract: ' + result.args.contractAddress);
-            //     console.log('VotingAddress(イベントが発火しました): ' + result.args.contractAddress);
-            //   } else {
-            //     $('#loader').hide();
-            //     console.log(error);
-            //   }
-            // });
-
-            creatorContract
-              .createBallot(enddate, ballottype, votelimit, ballotid, title, whitelist)
-              .then(async function (result) {
-                // Debug 210810
-                const waitsec = 20;
-                await sleepByPromise(waitsec);
-                console.log('20秒経過');
-
-                console.log('Ballot作成完了', '\nTX HASH: ', result);
-                creatorContract
-                  .getAddress(ballotid)
-                  .then(function (v) {
-                    console.log('VotingAddress: ', v);
-                    let votingAddress = v.toString();
-                    fillSetup(votingAddress, choicesArray, whitelistedArray, whitelist);
-                    registerBallot(votingAddress, ballotid);
-                    console.log('Ballotの情報登録完了');
-                  })
-                  .catch(function (error) {
-                    console.error(error);
-                    console.error('VotingAddressを取得できませんでした');
-                  });
-              })
-              .catch(function (error) {
-                console.error(error);
-                console.error('Ballot作成失敗');
-              });
+            creatorContract.createBallot(enddate, ballottype, votelimit, ballotID, title, whitelist);
           }
         });
       }
@@ -1039,17 +1008,14 @@ window.ballotSetup = function () {
     });
 };
 
-function sleepByPromise(sec) {
-  return new Promise((resolve) => setTimeout(resolve, sec * 1000));
-}
-
 window.getVotingAddress = function () {
-  let ballotid1 = $('#votingAddress').val();
-  creatorContract.getAddress(ballotid1, (error, v) => {
-    console.log('作成したvotingアドレス=' + v);
+  let tmpBallotId = $('#votingAddress').val();
+  creatorContract.getAddress(tmpBallotId).then(function (v) {
+    console.log('Ballot ID ' + tmpBallotId + 'のVotingAddress :' + v);
   });
 };
 
+// 投票用紙の準備
 function registerBallot(votingaddress, ballotid) {
   registrarContract
     .setAddress(votingaddress, ballotid)
