@@ -1,1 +1,2 @@
-# BroncoVotes-web-mori
+# BroncoVotes
+The Arrange of BroncoVotes by @hwavy
