@@ -699,9 +699,7 @@ const initialize = () => {
         signer = ethersProvider.getSigner();
         creatorContract = new ethers.Contract(creatorAddress, creatorABI, signer);
         creatorContract.on('newVotingContractEvent', function (contractAddress) {
-          $('#loader').hide();
-          console.log('"newVotingContractEvent"が発火しました');
-          console.log('VotingAddress: ' + contractAddress);
+          setVotingInfo(contractAddress);
         });
         registrarContract = new ethers.Contract(registrarAddress, registrarABI, signer);
       }
@@ -720,6 +718,12 @@ const initialize = () => {
     }
   };
   MetaMaskClientCheck();
+};
+
+const setVotingInfo = async function (votingAddress) {
+  $('#loader').hide();
+  console.log('"newVotingContractEvent"が発火しました');
+  console.log('VotingAddress: ' + votingAddress);
 };
 
 window.addEventListener('DOMContentLoaded', initialize);
@@ -987,20 +991,6 @@ window.ballotSetup = function () {
             let whitelisted = $('#whitelisted').val(); // ホワイトリストに登録したいメールアドレスを取得
             let whitelistedArray = whitelisted.split(/\s*,\s*/); // ホワイトリストをリスト形式で取得
             let ballotid = Math.floor(Math.random() * 4294967295); // 投票用紙IDをランダムで生成
-
-            //Debug 210927
-            // let newVotingContractEvent = creatorContract.newVotingContractEvent();
-            // newVotingContractEvent.watch(function (error, result) {
-            //   console.log('watching "newVotingContractEvent" event!');
-            //   if (!error) {
-            //     $('#loader').hide();
-            //     // $('#contractaddress').html('Contract: ' + result.args.contractAddress);
-            //     console.log('VotingAddress(イベントが発火しました): ' + result.args.contractAddress);
-            //   } else {
-            //     $('#loader').hide();
-            //     console.log(error);
-            //   }
-            // });
 
             creatorContract
               .createBallot(enddate, ballottype, votelimit, ballotid, title, whitelist)
