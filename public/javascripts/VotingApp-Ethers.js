@@ -659,8 +659,8 @@ let votingABI = [
   },
 ];
 
-const creatorAddress = '0xE94B2E0D54c411D94846Cb65A84c2dbA1EDE1B3F';
-const registrarAddress = '0x5945c721FDEed6F6682662d1bBa028482a19B1E7';
+const creatorAddress = '0x0D43A4EC41B5F8dDde794f7871D1F84E7EE7a62B';
+const registrarAddress = '0xc03EaF2AAB55D66e5E5b595498e00694f0570EC9';
 
 let ethersProvider;
 let signer;
