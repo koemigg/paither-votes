@@ -8,10 +8,10 @@ contract Voting {
     struct Ballot {
         uint8 ballotType;   // 投票用紙の形式? election(選択式) or poll(記述式)
         uint32 ballotId;    // 特定のVotingコントラクトにアクセスするための値
-        uint8 voteLimit;    // 投票回数?
-        uint32 timeLimit;   // 投票期間?
+        uint8 voteLimit;    // 投票回数
+        uint32 timeLimit;   // 投票期間
         string title;       // タイトル
-        uint8 whitelist;    // 不明
+        uint8 whitelist;    // 投票に個別なEmailアドレスのホワイトリストの形式
     }
 
     // 候補者情報をまとめた構造体
@@ -23,7 +23,7 @@ contract Voting {
 
     // 投票者情報をまとめた構造体
     struct Voter {
-        bytes32[] whitelisted;                       // ホワイトリストのemailアドレス
+        bytes32[] whitelisted;                       // 投票に個別なEmailアドレスのホワイトリスト
         mapping (address => uint8) attemptedVotes;  // 各アドレスに対応する投票者の現在の投票回数
     }
 
@@ -47,7 +47,7 @@ contract Voting {
     // uint8  _voteLimit  : 投票回数?
     // uint32 _ballotId   : 特定のVotingコントラクトにアクセスするための値
     // stting _title      : タイトル
-    // uint8 _whitelisted : 不明
+    // uint8 _whitelisted : 投票に個別なEmailアドレスのホワイトリスト
     // address _owner     : 管理者のアドレス
     constructor (uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whitelist, address _owner) public {
         // 投票用紙情報をまとめている構造体bに各パラメータを設定
@@ -251,7 +251,7 @@ contract Creator {
     // uint8  _voteLimit  : 投票回数?
     // uint32 _ballotId   : 特定のVotingコントラクトにアクセスするための値
     // string _title      : タイトル
-    // uint8 _whitelisted : 不明
+    // uint8 _whitelisted : 投票ごとのホワイトリストの形式
     function createBallot(uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whitelisted) public {
         owner = msg.sender;     // このメソッドを呼び出したアカウントのアドレスを格納
         Voting newContract = new Voting(_timeLimit, _ballotType, _voteLimit, _ballotId, _title, _whitelisted, owner);
