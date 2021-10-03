@@ -252,9 +252,10 @@ contract Creator {
     // uint32 _ballotId   : 特定のVotingコントラクトにアクセスするための値
     // string _title      : タイトル
     // uint8 _whitelisted : 投票ごとのホワイトリストの形式
-    function createBallot(uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whitelisted) public {
+    function createBallot(uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whitelist)
+    public {
         owner = msg.sender;     // このメソッドを呼び出したアカウントのアドレスを格納
-        Voting newContract = new Voting(_timeLimit, _ballotType, _voteLimit, _ballotId, _title, _whitelisted, owner);
+        Voting newContract = new Voting(_timeLimit, _ballotType, _voteLimit, _ballotId, _title, _whitelist, owner);
         contracts[_ballotId] = newContract; // 作成したVotingコントラクトのアドレスを登録
         emit newVotingContractEvent(address(newContract));
     }
