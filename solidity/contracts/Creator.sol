@@ -24,7 +24,8 @@ contract Voting {
 
     // 投票者情報をまとめた構造体
     struct Voter {
-        bytes32[] whitelisted;                       // 投票に個別なEmailアドレスのホワイトリスト
+        bytes32[] whitelisted;                      // 投票に個別なEmailアドレスのホワイトリスト
+        bytes32[] whiteDomainList;                  // 投票に個別なEmailアドレスのドメインのホワイトリスト
         mapping (address => uint8) attemptedVotes;  // 各アドレスに対応する投票者の現在の投票回数
     }
 
