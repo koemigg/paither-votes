@@ -17,15 +17,15 @@ contract Voting {
     // 候補者情報をまとめた構造体
     struct Candidates {
         bytes32[] candidateList;    // 候補者リストを配列で保存
-        mapping (bytes32 => bytes32) candidateHash; // bytes32型の候補者名とstring型の候補者名のハッシュ値の対応付け: candidateHash[candidateList[i]] => keccak256[string型の候補者名]
+        mapping (bytes32 => bytes32) candidateHash; // bytes3型の候補者名とstring型の候補者名のハッシュ値の対応付け: candidateHash[candidateList[i]] => keccak256[string型の候補者名]
         mapping (bytes32 => uint256) votesReceived; // 候補者のハッシュ値と
     }
 
     // 投票者情報をまとめた構造体
-    struct Voter {
-        bytes32[] whitelisted;                       // 投票に個別なEmailアドレスのホワイトリスト
-        mapping (address => uint8) attemptedVotes;  // 各アドレスに対応する投票者の現在の投票回数
-    }
+struct Voter {
+    bytes32[] whitelisted;                       // 投票に個別なEmailアドレスのホワイトリスト
+    mapping (address => uint8) attemptedVotes;  // 各アドレスに対応する投票者の現在の投票回数
+}
 
     Candidates c;   // 候補者情報をまとめた構造体
     Voter v;        // 投票者情報をまとめた構造体

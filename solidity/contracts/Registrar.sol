@@ -43,13 +43,13 @@ contract Registrar {
     // bytes32 email   : ユーザーのメールアドレス
     // uint16 idnum    : 学生/従業員ID番号
     // bytes32 _domain : ドメイン名
-    // uint8   _permreq: 権限?
+    // uint8   _permreq: 投票作成権限
     function registerVoter(bytes32 email, uint16 idnum, bytes32 _domain, uint8 _permreq) public {
         if (domainCheck(_domain) == false) revert();    // 入力されたドメイン名がdomainListに登録されていなければ処理を終了する
-        v.voterID[email] = idnum;           // 入力されたe-mailアドレスと学生/従業員ID番号を対応付け
-        v.createPerm[email] = _permreq;     // 入力されたe-mailアドレスと権限?を対応付け
-        v.voterAddr[email] = msg.sender;    // 入力されたe-mailアドレスEtherumアカウントアドレスを対応付け
-        v.voterEmail[idnum] = email;        // 入力された学生/従業員ID番号とe-mailアドレスを対応付け
+        v.voterID[email] = idnum;           // 入力されたEmailアドレスと学生/従業員ID番号を対応付け
+        v.createPerm[email] = _permreq;     // 入力されたEmailアドレスと投票作成権限の対応付け
+        v.voterAddr[email] = msg.sender;    // 入力されたEmailアドレスEtherumアカウントアドレスの対応付け
+        v.voterEmail[idnum] = email;        // 入力された学生/従業員ID番号とEmailアドレスの対応付け
     }
 
     // 入力されたメールアドレスに権限1を設定する
