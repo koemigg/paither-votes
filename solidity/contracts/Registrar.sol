@@ -35,7 +35,7 @@ contract Registrar {
     // このmodifierがついたメソッドを呼び出したユーザーが管理者アドレスと一致するかを確認する.
     // 一致すれば処理を続行, 一致しなければ処理をその時点で終了し, contractの状態を実行前に戻す
     modifier onlyOwner {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "Sender not authorized.");
         _;
     }
 
@@ -45,7 +45,7 @@ contract Registrar {
     // bytes32 _domain : ドメイン名
     // uint8   _permreq: 投票作成権限
     function registerVoter(bytes32 email, uint16 idnum, bytes32 _domain, uint8 _permreq) public {
-        if (domainCheck(_domain) == false) revert();    // 入力されたドメイン名がdomainListに登録されていなければ処理を終了する
+        if (domainCheck(_domain) == false) revert('Domain is not whitelisted.');    // 入力されたドメイン名がdomainListに登録されていなければ処理を終了する
         v.voterID[email] = idnum;           // 入力されたEmailアドレスと学生/従業員ID番号を対応付け
         v.createPerm[email] = _permreq;     // 入力されたEmailアドレスと投票作成権限の対応付け
         v.voterAddr[email] = msg.sender;    // 入力されたEmailアドレスEtherumアカウントアドレスの対応付け
