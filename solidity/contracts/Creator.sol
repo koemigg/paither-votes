@@ -25,7 +25,7 @@ contract Voting {
     // 投票者情報をまとめた構造体
     struct Voter {
         bytes32[] whitelisted;                      // 投票に個別なEmailアドレスのホワイトリスト
-        bytes32[] whiteDomainList;                  // 投票に個別なEmailアドレスのドメインのホワイトリスト
+        bytes32[] whiteDomains;                     // 投票に個別なEmailアドレスのドメインのホワイトリスト
         mapping (address => uint8) attemptedVotes;  // 各アドレスに対応する投票者の現在の投票回数
     }
 
@@ -91,6 +91,12 @@ contract Voting {
         }
     }
 
+    function setWhiteDomain(bytes32[] memory _domain) public onlyOwner {
+        for(uint i = 0; i < _domain.length; i++) {
+            v.whiteDomains.push(_domain[i]);
+        }
+    }
+
     // 候補者リストに格納されている候補者名をハッシュ化していく
     function hashCandidates() public onlyOwner {
         tempVote = 1;   // 初期値
@@ -105,11 +111,13 @@ contract Voting {
     // uint256[] _votes : 投票内容?
     // bytes32[] _candidates : 投票者が使用した候補者リスト
     // bytes32 _email : 投票するユーザーのメールアドレス
-    function voteForCandidate(uint256[] memory _votes, bytes32 _email, bytes32[] memory _candidates) public {
+    function voteForCandidate(uint256[] memory _votes, bytes32 _email, bytes32 _domain, bytes32[] memory _candidates) public {
         // 投票回数の上限に達しているか
         if (checkTimelimit() == false || checkVoteattempts() == false) revert('Maximum number of votes has been reached.');
         // Emailアドレスがホワイトリストに含まれているか
         if (checkWhitelist() == true && checkifWhitelisted(_email) == false) revert('Email address is not included in the whitelist');
+        // Emailアドレスのドメインがホワイトリストに含まれているか
+        if (usingWhiteDomain() == true && whiteDomainIncludes(_domain) == false) revert('Domain is not included in the whitelist');
         tempVotes = _votes;
         tempCandidates = _candidates;       // 候補者リストを一時保存
         v.attemptedVotes[msg.sender] += 1;  // このメソッドを呼び出したユーザ(投票した人)の投票回数を+1する
@@ -213,17 +221,28 @@ contract Voting {
         else return false;
     }
 
+    function usingWhiteDomain() public view returns (bool) {
+        if (b.whitelist == 1) return true;
+        else return false;
+    }
+
     // 入力値bytes32 emailが, whitelistedに登録されているかをチェックする.
     // 登録されていればtrue, されていなければfalse
-    function checkifWhitelisted(bytes32 email) public returns (bool) {
+    function checkifWhitelisted(bytes32 email) public view returns (bool) {
         for(uint j = 0; j < v.whitelisted.length; j++) {
-            // tempEmail = v.whitelisted[j];
             if ( v.whitelisted[j] == email) {
-                // emit Bool(true);
                 return true;
             }
         }
-        // emit Bool(false);
+        return false;
+    }
+
+    function whiteDomainIncludes(bytes32 _domain) public view returns (bool) {
+        for(uint i = 0; i < v.whiteDomains.length; i++) {
+            if ( v.whiteDomains[i] == _domain) {
+                return true;
+            }
+        }
         return false;
     }
 
