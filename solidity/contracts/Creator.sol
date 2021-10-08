@@ -91,7 +91,7 @@ contract Voting {
         }
     }
 
-    function setWhiteDomain(bytes32[] memory _domain) public onlyOwner {
+    function setWhiteListedDomain(bytes32[] memory _domain) public onlyOwner {
         for(uint i = 0; i < _domain.length; i++) {
             v.whiteDomains.push(_domain[i]);
         }
