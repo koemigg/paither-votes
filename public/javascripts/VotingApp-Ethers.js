@@ -49,7 +49,7 @@ let creatorABI = [
       },
       {
         internalType: 'uint8',
-        name: '_whitelisted',
+        name: '_whitelist',
         type: 'uint8',
       },
     ],
@@ -388,6 +388,21 @@ let votingABI = [
   },
   {
     constant: false,
+    inputs: [
+      {
+        internalType: 'bytes32[]',
+        name: '_domain',
+        type: 'bytes32[]',
+      },
+    ],
+    name: 'setWhiteListedDomain',
+    outputs: [],
+    payable: false,
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    constant: false,
     inputs: [],
     name: 'hashCandidates',
     outputs: [],
@@ -406,6 +421,11 @@ let votingABI = [
       {
         internalType: 'bytes32',
         name: '_email',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bytes32',
+        name: '_domain',
         type: 'bytes32',
       },
       {
@@ -480,7 +500,7 @@ let votingABI = [
       },
     ],
     payable: false,
-    stateMutability: 'view',
+    stateMutability: 'pure',
     type: 'function',
   },
   {
@@ -607,7 +627,22 @@ let votingABI = [
     type: 'function',
   },
   {
-    constant: false,
+    constant: true,
+    inputs: [],
+    name: 'usingWhiteDomain',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    payable: false,
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    constant: true,
     inputs: [
       {
         internalType: 'bytes32',
@@ -624,7 +659,28 @@ let votingABI = [
       },
     ],
     payable: false,
-    stateMutability: 'nonpayable',
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    constant: true,
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: '_domain',
+        type: 'bytes32',
+      },
+    ],
+    name: 'whiteDomainIncludes',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    payable: false,
+    stateMutability: 'view',
     type: 'function',
   },
   {
@@ -659,8 +715,8 @@ let votingABI = [
   },
 ];
 
-const creatorAddress = '0x0D43A4EC41B5F8dDde794f7871D1F84E7EE7a62B';
-const registrarAddress = '0xc03EaF2AAB55D66e5E5b595498e00694f0570EC9';
+const creatorAddress = '0x1E9227467c2EeEc22FE8F68689865F8668477bdF';
+const registrarAddress = '0x5df5900B25E97bcf122137e1f9e479AE68F8EcE4';
 
 let ethersProvider;
 let signer;
@@ -727,10 +783,12 @@ const setVotingInfo = async function (votingAddress) {
   console.log('VotingAddress: ' + votingAddress);
   let choices = $('#choices').val(); // 候補者名一覧
   let choicesArray = choices.split(/\s*,\s*/); // 候補者名(Array)
-  let whitelist = $('input[name=whitelist]:checked').val(); // ホワイトリストの形式
+  let whiteListType = $('input[name=whitelist]:checked').val(); // ホワイトリストの形式
   let whitelisted = $('#whitelisted').val(); // ホワイトリストに登録するメールアドレス
-  let whitelistedArray = whitelisted.split(/\s*,\s*/); // ホワイトリスト(Array)
-  fillSetup(votingAddress, choicesArray, whitelistedArray, whitelist);
+  let whitelistedDomain = $('#whitelistedDomain').val(); // ホワイトリストに登録するドメイン
+  let whitelistedArray = whitelisted.split(/\s*,\s*/); // ホワイトリストのメールアドレス(Array)
+  let whitelistedDomainArray = whitelistedDomain.split(/\s*,\s*/); // ホワイトリストのドメイン(Array)
+  fillSetup(votingAddress, choicesArray, whitelistedArray, whitelistedDomainArray, whiteListType);
   registerBallot(votingAddress, ballotID);
   console.log('Votingへの情報登録完了');
 };
@@ -994,10 +1052,10 @@ window.ballotSetup = function () {
             let ballottype = $('input[name=ballottype]:checked').val(); // 投票形式を取得 poll or election
             let title = $('#vtitle').val(); // 投票タイトルを取得
             let votelimit = $('#votelimit').val(); // 投票回数を取得
-            let whitelist = $('input[name=whitelist]:checked').val(); // ホワイトリストの形式を取得
+            let whiteListType = $('input[name=whitelist]:checked').val(); // ホワイトリストの形式を取得
             ballotID = Math.floor(Math.random() * 4294967295); // 投票用紙IDをランダムで生成
 
-            creatorContract.createBallot(enddate, ballottype, votelimit, ballotID, title, whitelist);
+            creatorContract.createBallot(enddate, ballottype, votelimit, ballotID, title, whiteListType);
           }
         });
       }
@@ -1030,10 +1088,13 @@ function registerBallot(votingaddress, ballotid) {
 }
 
 // Candidate, Whitelistをコントラクトに登録
-function fillSetup(votingAddress, choicesArray, whitelistedArray, whitelist) {
+function fillSetup(votingAddress, choicesArray, whitelistedArray, whitelistedDomainArray, whiteListType) {
   fillCandidates(votingAddress, choicesArray);
-  if (whitelist == 1) {
+  if (whiteListType == 1) {
     fillWhitelisted(votingAddress, whitelistedArray);
+  }
+  if (whiteListType == 2) {
+    fillWhitelistedDomain(votingAddress, whitelistedDomainArray);
   }
 }
 
@@ -1051,6 +1112,11 @@ function fillCandidates(votingAddress, choicesArray) {
 function fillWhitelisted(votingAddress, whitelistedArray) {
   let votingContract = new ethers.Contract(votingAddress, votingABI, signer);
   votingContract.setWhitelisted(web3StringArrayToBytes32(whitelistedArray));
+}
+
+function fillWhitelistedDomain(votingAddress, whitelistedDomainArray) {
+  let votingContract = new ethers.Contract(votingAddress, votingABI, signer);
+  votingContract.setWhiteListedDomain(web3StringArrayToBytes32(whitelistedDomainArray));
 }
 
 window.AddDomain = () => {

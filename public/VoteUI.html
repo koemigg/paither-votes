@@ -116,13 +116,21 @@
             <input type="radio" style="width: 25px" name="whitelist" value="0"> <b>Non-Whitelist</b> (all e-mails with
             whitelisted domain are allowed to vote)
             <br>
-            <input type="radio" style="width: 25px" name="whitelist" value="1"> <b>Whitelist</b> (only certain e-mails
-            with whitelisted domain are allowed to vote)
             <br>
+            <input type="radio" style="width: 25px" name="whitelist" value="1"> <b>Whitelist (Email)</b> (only certain e-mails
+            with whitelisted domain are allowed to vote)
             <br>
             <b style="color:rgb(0,0,255)">Seperate each e-mail address with a comma: </b>
             <br>
             <input type="text" id="whitelisted" placeholder="Whitelisted e-mail addresses (if applicable)"
+                style="width: 400px" />
+            <br>
+            <br>
+            <input type="radio" style="width: 25px" name="whitelist" value="2"> <b>Whitelist (Domain)</b> (only the specified domain will be allowed to vote)
+            <br>
+            <b style="color:rgb(0,0,255)">Seperate each e-mail address with a comma: </b>
+            <br>
+            <input type="text" id="whitelistedDomain" placeholder="Whitelisted domains (if applicable)"
                 style="width: 400px" />
             <br>
             <br>
