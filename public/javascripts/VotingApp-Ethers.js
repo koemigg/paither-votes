@@ -49,7 +49,7 @@ let creatorABI = [
       },
       {
         internalType: 'uint8',
-        name: '_whitelisted',
+        name: '_whitelist',
         type: 'uint8',
       },
     ],
@@ -388,6 +388,21 @@ let votingABI = [
   },
   {
     constant: false,
+    inputs: [
+      {
+        internalType: 'bytes32[]',
+        name: '_domain',
+        type: 'bytes32[]',
+      },
+    ],
+    name: 'setWhiteListedDomain',
+    outputs: [],
+    payable: false,
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    constant: false,
     inputs: [],
     name: 'hashCandidates',
     outputs: [],
@@ -406,6 +421,11 @@ let votingABI = [
       {
         internalType: 'bytes32',
         name: '_email',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bytes32',
+        name: '_domain',
         type: 'bytes32',
       },
       {
@@ -480,7 +500,7 @@ let votingABI = [
       },
     ],
     payable: false,
-    stateMutability: 'view',
+    stateMutability: 'pure',
     type: 'function',
   },
   {
@@ -607,7 +627,22 @@ let votingABI = [
     type: 'function',
   },
   {
-    constant: false,
+    constant: true,
+    inputs: [],
+    name: 'usingWhiteDomain',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    payable: false,
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    constant: true,
     inputs: [
       {
         internalType: 'bytes32',
@@ -624,7 +659,28 @@ let votingABI = [
       },
     ],
     payable: false,
-    stateMutability: 'nonpayable',
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    constant: true,
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: '_domain',
+        type: 'bytes32',
+      },
+    ],
+    name: 'whiteDomainIncludes',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    payable: false,
+    stateMutability: 'view',
     type: 'function',
   },
   {
@@ -659,8 +715,8 @@ let votingABI = [
   },
 ];
 
-const creatorAddress = '0x0D43A4EC41B5F8dDde794f7871D1F84E7EE7a62B';
-const registrarAddress = '0xc03EaF2AAB55D66e5E5b595498e00694f0570EC9';
+const creatorAddress = '0x1E9227467c2EeEc22FE8F68689865F8668477bdF';
+const registrarAddress = '0x5df5900B25E97bcf122137e1f9e479AE68F8EcE4';
 
 let ethersProvider;
 let signer;
