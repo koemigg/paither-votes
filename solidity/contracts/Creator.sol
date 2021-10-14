@@ -4,14 +4,19 @@ contract Voting {
 
     event Bool(bool judge);
     event VotesCounts(uint256 _votesReceived);
-    // 投票用紙情報をまとめた構造体
+    
+    // 投票用紙情報
     struct Ballot {
         uint8 ballotType;   // 投票用紙の形式? election(選択式) or poll(記述式)
         uint32 ballotId;    // 特定のVotingコントラクトにアクセスするための値
         uint8 voteLimit;    // 投票回数
         uint32 timeLimit;   // 投票期間
         string title;       // タイトル
-        uint8 whitelist;    // 投票に個別なEmailアドレスのホワイトリストの形式
+        uint8 whiteListType;                        // 投票に個別なEmailアドレスのホワイトリストの形式
+        bytes32[] whiteEmailAddresseses;            // 投票に個別なEmailアドレスのホワイトリスト
+        bytes32[] whiteDomains;                     // 投票に個別なEmailアドレスのドメインのホワイトリスト
+        mapping (uint32 => address) votingAddress;  // 投票用紙IDに対応するvotingコントラクトアドレスを保存
+        mapping (address => uint32) ballotID;       // votinコントラクトアドレスに対応する投票用紙IDを保存
     }
 
     // 候補者情報をまとめた構造体
@@ -24,9 +29,10 @@ contract Voting {
 
     // 投票者情報をまとめた構造体
     struct Voter {
-        bytes32[] whitelisted;                      // 投票に個別なEmailアドレスのホワイトリスト
-        bytes32[] whiteDomains;                     // 投票に個別なEmailアドレスのドメインのホワイトリスト
         mapping (address => uint8) attemptedVotes;  // 各アドレスに対応する投票者の現在の投票回数
+        mapping (bytes32 => address) voterAddr;     // Emailアドレスに対応するEthreumアドレス
+        mapping (bytes32 => uint16) voterID;        // Emailアドレスに対応する学生/従業員ID番号を保存
+        mapping (uint16 => bytes32) voterEmail;     // 学生/従業員ID番号に対応するEmailアドレスを保存
     }
 
     Candidates c;   // 候補者情報をまとめた構造体
@@ -43,16 +49,15 @@ contract Voting {
     bytes32 tempEmail;          // メールアドレス格納
     address owner;              // 管理者のアドレス
 
-    // コンストラクタ
-    // uint32 _timeLimit  : 投票期間?
-    // uint8  _ballotType : 投票用紙の形式? election(選択式) or poll(記述式)
-    // uint8  _voteLimit  : 投票回数?
+    // uint32 _timeLimit  : 投票期間
+    // uint8  _ballotType : 投票用紙の形式 election(選択式) or poll(記述式)
+    // uint8  _voteLimit  : 投票回数
     // uint32 _ballotId   : 特定のVotingコントラクトにアクセスするための値
     // stting _title      : タイトル
-    // uint8 _whitelisted : 投票に個別なEmailアドレスのホワイトリスト
+    // uint8 _whiteListType : ホワイトリストのタイプ
     // address _owner     : 管理者のアドレス
     constructor
-    (uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whitelist, address _owner)
+    (uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whiteListType, address _owner)
     public {
         // 投票用紙情報をまとめている構造体bに各パラメータを設定
         b.timeLimit = _timeLimit;
@@ -60,20 +65,18 @@ contract Voting {
         b.voteLimit = _voteLimit;
         b.ballotId = _ballotId;
         b.title = _title;
-        b.whitelist = _whitelist;
+        b.whiteListType = _whiteListType;
 
         owner = _owner; // 管理者のアドレスを格納
     }
 
-    // modifier処理を設定
-    // このmodifierがついたメソッドを呼び出したユーザーが管理者アドレスと一致するかを確認する.
-    // 一致すれば処理を続行, 一致しなければ処理をその時点で終了し, contractの状態を実行前に戻す
+
     modifier onlyOwner {
         require(msg.sender == owner, "Sender not authorized.");
         _;
     }
 
-    // 候補者リストの設定を行う : 管理者のみ実行可能
+    // 候補者リストの設定を
     // bytes32[] _candidates : 候補者リスト
     function setCandidates(bytes32[] memory _candidates) public onlyOwner {
         for(uint i = 0; i < _candidates.length; i++) {
@@ -82,16 +85,15 @@ contract Voting {
         }
     }
 
-    // whitelistedの設定を行う : 管理者のみ実行可能
-    // bytes32[] _emails      : whitelistedに追加したいメールアドレスリスト
-    function setWhitelisted(bytes32[] memory _emails) public onlyOwner {
+    // whiteEmailAddressesの設定
+    // bytes32[] _emails      : whiteEmailAddressesに追加したいメールアドレスリスト
+    function setWhiteEmailAddresses(bytes32[] memory _emails) public onlyOwner {
         for(uint i = 0; i < _emails.length; i++) {
-            tempEmail = _emails[i]; // i番目のメールアドレスを一時保存
-            v.whitelisted.push(tempEmail);  // 投票者情報をまとめた構造体vのメンバ変数whitelistedにtempEmailを追加
+            b.whiteEmailAddresses.push(_emails[i]);  // 投票者情報をまとめた構造体vのメンバ変数whiteEmailAddressesにtempEmailを追加
         }
     }
 
-    function setWhiteListedDomain(bytes32[] memory _domain) public onlyOwner {
+    function setWhiteDomains(bytes32[] memory _domain) public onlyOwner {
         for(uint i = 0; i < _domain.length; i++) {
             v.whiteDomains.push(_domain[i]);
         }
@@ -108,16 +110,14 @@ contract Voting {
         }
     }
 
-    // uint256[] _votes : 投票内容?
+    // uint256[] _votes : 投票内容
     // bytes32[] _candidates : 投票者が使用した候補者リスト
     // bytes32 _email : 投票するユーザーのメールアドレス
     function voteForCandidate(uint256[] memory _votes, bytes32 _email, bytes32 _domain, bytes32[] memory _candidates) public {
-        // 投票回数の上限に達しているか
-        if (checkTimelimit() == false || checkVoteattempts() == false) revert('Maximum number of votes has been reached.');
-        // Emailアドレスがホワイトリストに含まれているか
-        if (checkWhitelist() == true && checkifWhitelisted(_email) == false) revert('Email address is not included in the whitelist');
-        // Emailアドレスのドメインがホワイトリストに含まれているか
-        if (usingWhiteDomain() == true && whiteDomainIncludes(_domain) == false) revert('Domain is not included in the whitelist');
+        if (checkTimelimit() == false) revert('The time for voting has passed.');
+        if (checkVoteattempts() == false) revert('Maximum number of votes has been reached.');
+        if (usingWhiteEmailAddress() == true && whiteEmailAddressesIncludes(_email) == false) revert('Email address is not whitelistted.');
+        if (usingWhiteDomain() == true && whiteDomainsIncludes(_domain) == false) revert('Domain is not whitelisted.');
         tempVotes = _votes;
         tempCandidates = _candidates;       // 候補者リストを一時保存
         v.attemptedVotes[msg.sender] += 1;  // このメソッドを呼び出したユーザ(投票した人)の投票回数を+1する
@@ -147,6 +147,49 @@ contract Voting {
         if (validCandidate(cHash) == false) revert('This is a non-existent option/candidate name.');
         // emit VotesCounts(c.votesReceived[cHash]);
         return c.votesReceived[cHash];
+    }
+
+    function registerVoter(bytes32 email, uint16 idnum, bytes32 _domain) public {
+        if (usingWhiteEmailAddress() == true && whiteEmailAddressesIncludes(_email) == false) revert('Email address is not whitelisted.');
+        if (usingWhiteDomain() == true && whiteDomainsIncludes(_domain) == false) revert('Domain is not whitlisted.');
+        v.voterID[email] = idnum;           // 入力されたEmailアドレスと学生/従業員ID番号を対応付け
+        v.voterAddr[email] = msg.sender;    // 入力されたEmailアドレスEtherumアカウントアドレスの対応付け
+        v.voterEmail[idnum] = email;        // 入力された学生/従業員ID番号とEmailアドレスの対応付け
+    }
+
+    function addWhiteDomains(bytes32 _domain) public onlyOwner {
+        b.whiteDomains.push(_domain);
+    }
+
+    // このメソッドを呼び出したユーザーが登録済みか否かを確認する
+    // 未登録であればtrue, 登録済みであればfalse
+    // bytes32 email : メールアドレス
+    // uint16 idnum  : 学生/従業員ID番号
+    function checkReg(bytes32 email, uint16 idnum) public view returns (bool) {
+        if (v.voterID[email] == 0 && v.voterEmail[idnum] == 0) return true;
+        else return false;
+    }
+
+    // このメソッドを呼び出した投票者の状態を確認する
+    // bytes32 email : メールアドレス
+    function checkVoter(bytes32 email) public view returns (uint8) {
+        if (v.voterID[email] == 0) return 1;            // 登録処理が行われていない場合1を返す
+        // メールアドレスに紐付いているEthreumアカウントアドレスとメソッドを呼び出した投票者のEthereumアカウントアドレスが一致しなければ2を返す
+        if (v.voterAddr[email] != msg.sender) return 2;
+        else return 0;  // 他の状態であれば0を返す
+    }
+
+    // 投票用紙IDとそれに対応するVotingコントラクトのアドレスをリンクする
+    // address _ballotAddr : Votingコントラクトのアドレス
+    // uint32 _ballotID    : 投票用紙ID
+    function setAddress(address _ballotAddr, uint32 _ballotID) public {
+        b.votingAddress[_ballotID] = _ballotAddr;   // 投票用紙IDにVotingコントラクトアドレスを紐付ける
+        b.ballotID[_ballotAddr] = _ballotID;        // Votingコントラクトアドレスに投票用紙IDを紐付ける
+    }
+
+    // 入力値の投票用紙IDに紐付いているコントラクトアドレスを出力
+    function getAddress(uint32 _ballotID) public view returns (address) {
+        return b.votingAddress[_ballotID];
     }
 
     // 入力値bytes32 xをstring型に変換
@@ -216,28 +259,28 @@ contract Voting {
     }
 
     // whiletelistに格納されている値が1であればtrue, 1でなければfalse
-    function checkWhitelist() public view returns (bool) {
-        if (b.whitelist == 1) return true;
+    function usingWhiteEmailAddress() public view returns (bool) {
+        if (b.whiteListType == 1) return true;
         else return false;
     }
 
     function usingWhiteDomain() public view returns (bool) {
-        if (b.whitelist == 1) return true;
+        if (b.whiteListType == 1) return true;
         else return false;
     }
 
-    // 入力値bytes32 emailが, whitelistedに登録されているかをチェックする.
+    // 入力値bytes32 emailが, whiteEmailAddressesに登録されているかをチェックする.
     // 登録されていればtrue, されていなければfalse
-    function checkifWhitelisted(bytes32 email) public view returns (bool) {
-        for(uint j = 0; j < v.whitelisted.length; j++) {
-            if ( v.whitelisted[j] == email) {
+    function whiteEmailAddressesIncludes(bytes32 email) public view returns (bool) {
+        for(uint j = 0; j < b.whiteEmailAddresses.length; j++) {
+            if ( b.whiteEmailAddresses[j] == email) {
                 return true;
             }
         }
         return false;
     }
 
-    function whiteDomainIncludes(bytes32 _domain) public view returns (bool) {
+    function whiteDomainsIncludes(bytes32 _domain) public view returns (bool) {
         for(uint i = 0; i < v.whiteDomains.length; i++) {
             if ( v.whiteDomains[i] == _domain) {
                 return true;
@@ -267,22 +310,14 @@ contract Creator {
        address contractAddress
     );
 
-    mapping (uint32 => Voting) contracts;  // Votingコントラクトのアドレスを登録. contracts[投票用紙ID(uint32)] => アドレスにアクセス
-    address owner;                          // 管理者のアドレス
+    mapping (uint32 => Voting) contracts;  // Votingコントラクトのアドレスを登録. contracts[投票用紙ID(uint32)] => Votingコントラクトのアドレス
+    address owner;
 
-    // Votingコントラクトの設定パラメータを入力して作成, contractsに格納するメソッド
-    // uint32 _timeLimit  : 投票期間?
-    // uint8  _ballotType : 投票用紙の形式?  election(選択式)1 or poll(記述式)0
-    // uint8  _voteLimit  : 投票回数?
-    // uint32 _ballotId   : 特定のVotingコントラクトにアクセスするための値
-    // string _title      : タイトル
-    // uint8 _whitelisted : 投票ごとのホワイトリストの形式
-    function createBallot(uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whitelist)
+    function createBallot(uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whiteListType)
     public {
-        owner = msg.sender;     // このメソッドを呼び出したアカウントのアドレスを格納
-        Voting newContract = new Voting(_timeLimit, _ballotType, _voteLimit, _ballotId, _title, _whitelist, owner);
-        contracts[_ballotId] = newContract; // 作成したVotingコントラクトのアドレスを登録
-        emit newVotingContractEvent(address(newContract));
+        Voting newVotng = new Voting(_timeLimit, _ballotType, _voteLimit, _ballotId, _title, _whiteListType, msg.sender);
+        contracts[_ballotId] = newVoting; // 作成したVotingコントラクトのアドレスを登録
+        emit newVotingContractEvent(address(newVoting));
     }
 
     // 入力したidに対応したcontractsに格納されているVotingコントラクトアドレスを出力

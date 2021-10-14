@@ -1010,9 +1010,6 @@ function verifyTimestamp(eadd1, i, candidateArray, email, votingAddress, votesAr
 }
 
 function vote(candidateArray, email, votingAddress, votesArray) {
-  // debug
-  console.log(typeof email);
-  console.log(email);
 
   let votingContract = new ethers.Contract(votingAddress, votingABI, signer);
   votingContract.voteForCandidate(votesArray, web3StringToBytes32(email), candidateArray).then(function () {
