@@ -13,7 +13,7 @@ contract Voting {
         uint32 timeLimit;   // 投票期間
         string title;       // タイトル
         uint8 whiteListType;                        // 投票に個別なEmailアドレスのホワイトリストの形式
-        bytes32[] whiteEmailAddresseses;            // 投票に個別なEmailアドレスのホワイトリスト
+        bytes32[] whiteEmailAddresses;              // 投票に個別なEmailアドレスのホワイトリスト
         bytes32[] whiteDomains;                     // 投票に個別なEmailアドレスのドメインのホワイトリスト
         mapping (uint32 => address) votingAddress;  // 投票用紙IDに対応するvotingコントラクトアドレスを保存
         mapping (address => uint32) ballotID;       // votinコントラクトアドレスに対応する投票用紙IDを保存
@@ -76,9 +76,9 @@ contract Voting {
         _;
     }
 
-    // 候補者リストの設定を
+    // 候補者リストの設定
     // bytes32[] _candidates : 候補者リスト
-    function setCandidates(bytes32[] memory _candidates) public onlyOwner {
+    function setCandidate(bytes32[] memory _candidates) public onlyOwner {
         for(uint i = 0; i < _candidates.length; i++) {
             tempCandidate = _candidates[i]; // i番目の候補者を一時保存
             c.candidateList.push(tempCandidate);    // 候補者情報をまとめた構造体cのメンバ変数candidateListにtempCandidateを追加
@@ -87,15 +87,15 @@ contract Voting {
 
     // whiteEmailAddressesの設定
     // bytes32[] _emails      : whiteEmailAddressesに追加したいメールアドレスリスト
-    function setWhiteEmailAddresses(bytes32[] memory _emails) public onlyOwner {
+    function setWhiteEmailAddress(bytes32[] memory _emails) public onlyOwner {
         for(uint i = 0; i < _emails.length; i++) {
             b.whiteEmailAddresses.push(_emails[i]);  // 投票者情報をまとめた構造体vのメンバ変数whiteEmailAddressesにtempEmailを追加
         }
     }
 
-    function setWhiteDomains(bytes32[] memory _domain) public onlyOwner {
+    function setWhiteDomain(bytes32[] memory _domain) public onlyOwner {
         for(uint i = 0; i < _domain.length; i++) {
-            v.whiteDomains.push(_domain[i]);
+            b.whiteDomains.push(_domain[i]);
         }
     }
 
@@ -149,15 +149,15 @@ contract Voting {
         return c.votesReceived[cHash];
     }
 
-    function registerVoter(bytes32 email, uint16 idnum, bytes32 _domain) public {
+    function registerVoter(bytes32 _email, uint16 _idnum, bytes32 _domain) public {
         if (usingWhiteEmailAddress() == true && whiteEmailAddressesIncludes(_email) == false) revert('Email address is not whitelisted.');
         if (usingWhiteDomain() == true && whiteDomainsIncludes(_domain) == false) revert('Domain is not whitlisted.');
-        v.voterID[email] = idnum;           // 入力されたEmailアドレスと学生/従業員ID番号を対応付け
-        v.voterAddr[email] = msg.sender;    // 入力されたEmailアドレスEtherumアカウントアドレスの対応付け
-        v.voterEmail[idnum] = email;        // 入力された学生/従業員ID番号とEmailアドレスの対応付け
+        v.voterID[_email] = _idnum;           // 入力されたEmailアドレスと学生/従業員ID番号を対応付け
+        v.voterAddr[_email] = msg.sender;    // 入力されたEmailアドレスEtherumアカウントアドレスの対応付け
+        v.voterEmail[_idnum] = _email;        // 入力された学生/従業員ID番号とEmailアドレスの対応付け
     }
 
-    function addWhiteDomains(bytes32 _domain) public onlyOwner {
+    function addWhiteDomain(bytes32 _domain) public onlyOwner {
         b.whiteDomains.push(_domain);
     }
 
@@ -165,8 +165,8 @@ contract Voting {
     // 未登録であればtrue, 登録済みであればfalse
     // bytes32 email : メールアドレス
     // uint16 idnum  : 学生/従業員ID番号
-    function checkReg(bytes32 email, uint16 idnum) public view returns (bool) {
-        if (v.voterID[email] == 0 && v.voterEmail[idnum] == 0) return true;
+    function checkReg(bytes32 _email, uint16 _idnum) public view returns (bool) {
+        if (v.voterID[_email] == 0 && v.voterEmail[_idnum] == 0) return true;
         else return false;
     }
 
@@ -225,8 +225,8 @@ contract Voting {
 
     // 設定されている候補者リストを出力する
     // uint64 _ballotID : 投票用紙ID
-    function candidateList(uint64 _ballotID) public view returns (bytes32[] memory) {
-        if (checkballotID(_ballotID) == false) revert('BallotID does not match.');
+    function getCandidateList(uint64 _ballotID) public view returns (bytes32[] memory) {
+        if (checkballotID(_ballotID) == false) revert('BallotID does not match');
         return c.candidateList;
     }
 
@@ -281,8 +281,8 @@ contract Voting {
     }
 
     function whiteDomainsIncludes(bytes32 _domain) public view returns (bool) {
-        for(uint i = 0; i < v.whiteDomains.length; i++) {
-            if ( v.whiteDomains[i] == _domain) {
+        for(uint i = 0; i < b.whiteDomains.length; i++) {
+            if ( b.whiteDomains[i] == _domain) {
                 return true;
             }
         }
@@ -315,7 +315,7 @@ contract Creator {
 
     function createBallot(uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whiteListType)
     public {
-        Voting newVotng = new Voting(_timeLimit, _ballotType, _voteLimit, _ballotId, _title, _whiteListType, msg.sender);
+        Voting newVoting = new Voting(_timeLimit, _ballotType, _voteLimit, _ballotId, _title, _whiteListType, msg.sender);
         contracts[_ballotId] = newVoting; // 作成したVotingコントラクトのアドレスを登録
         emit newVotingContractEvent(address(newVoting));
     }
