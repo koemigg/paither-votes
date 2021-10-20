@@ -1,13 +1,18 @@
-const Registor = artifacts.require("Registor");
+/*globals artifacts*/
+/*globals contract*/
+/*globals it*/
+/*globals assert*/
+
+const Migrations = artifacts.require("Migrations");
 
 /*
  * uncomment accounts to access the test accounts made available by the
  * Ethereum client
  * See docs: https://www.trufflesuite.com/docs/truffle/testing/writing-tests-in-javascript
  */
-contract("Registor", function (/* accounts */) {
+contract("Migrations", function (/* accounts */) {
   it("should assert true", async function () {
-    await Registor.deployed();
+    await Migrations.deployed();
     return assert.isTrue(true);
   });
 });
