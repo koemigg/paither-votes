@@ -321,8 +321,7 @@ contract Creator {
         emit newVotingContractEvent(address(newVoting));
     }
 
-    // 入力したidに対応したcontractsに格納されているVotingコントラクトアドレスを出力
-    function getAddress(uint32 id) public view returns(Voting contractAddress) {
-        return contracts[id];
+    function getAddress(uint32 _ballotId) public view returns(Voting contractAddress) {
+        return votes[_ballotId];
     }
 }
