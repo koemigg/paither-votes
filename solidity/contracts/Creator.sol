@@ -15,8 +15,6 @@ contract Voting {
         uint8 whiteListType;                        // 投票に個別なEmailアドレスのホワイトリストの形式
         bytes32[] whiteEmailAddresses;              // 投票に個別なEmailアドレスのホワイトリスト
         bytes32[] whiteDomains;                     // 投票に個別なEmailアドレスのドメインのホワイトリスト
-        mapping (uint32 => address) votingAddress;  // 投票用紙IDに対応するvotingコントラクトアドレスを保存
-        mapping (address => uint32) ballotID;       // votinコントラクトアドレスに対応する投票用紙IDを保存
     }
 
     // 候補者情報をまとめた構造体
@@ -310,13 +308,16 @@ contract Creator {
        address contractAddress
     );
 
-    mapping (uint32 => Voting) contracts;  // Votingコントラクトのアドレスを登録. contracts[投票用紙ID(uint32)] => Votingコントラクトのアドレス
+    mapping (uint32 => address) votes;      // Ballot ID => Voting conract address
+    mapping (address => uint32) ballotIDs;  // Voting conract address => Ballot ID 
+    
     address owner;
 
     function createBallot(uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whiteListType)
     public {
         Voting newVoting = new Voting(_timeLimit, _ballotType, _voteLimit, _ballotId, _title, _whiteListType, msg.sender);
-        contracts[_ballotId] = newVoting; // 作成したVotingコントラクトのアドレスを登録
+        votes[_ballotId] = address(newVoting);
+        ballotIDs[address(newVoting)] = _ballotId;
         emit newVotingContractEvent(address(newVoting));
     }
 
