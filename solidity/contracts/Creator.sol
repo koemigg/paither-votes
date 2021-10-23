@@ -22,7 +22,7 @@ contract Voting {
         bytes32[] candidateList;    // 候補者リストを配列で保存
         // bytes3型の候補者名とstring型の候補者名のハッシュ値の対応付け: candidateHash[candidateList[i]] => keccak256[string型の候補者名]
         mapping (bytes32 => bytes32) candidateHash;
-        mapping (bytes32 => uint256) votesReceived; // 候補者のハッシュ値と
+        mapping (bytes32 => uint256) votesReceived; // Hashed candidate names => vote counts
     }
 
     // 投票者情報をまとめた構造体
@@ -47,13 +47,13 @@ contract Voting {
     bytes32 tempEmail;          // メールアドレス格納
     address owner;              // 管理者のアドレス
 
-    // uint32 _timeLimit  : 投票期間
-    // uint8  _ballotType : 投票用紙の形式 election(選択式) or poll(記述式)
-    // uint8  _voteLimit  : 投票回数
-    // uint32 _ballotId   : 特定のVotingコントラクトにアクセスするための値
-    // stting _title      : タイトル
-    // uint8 _whiteListType : ホワイトリストのタイプ
-    // address _owner     : 管理者のアドレス
+    /// @param _timeLimit Voting Period
+    /// @param _ballotType The format of the vote. 0: poll, 1: election
+    /// @param _voteLimit Maximum number of vote
+    /// @param _ballotId A value to access a specific Voting contract.
+    /// @param _title Title
+    /// @param _whiteListType Whitelist type. 0: Non-whitelist, 1: E-mail, 2: domain
+    /// @param _owner Administrator's address
     constructor
     (uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whiteListType, address _owner)
     public {
@@ -83,8 +83,7 @@ contract Voting {
         }
     }
 
-    // whiteEmailAddressesの設定
-    // bytes32[] _emails      : whiteEmailAddressesに追加したいメールアドレスリスト
+    /// @param _emails List of email addresses to be added to whiteEmailAddresses
     function setWhiteEmailAddress(bytes32[] memory _emails) public onlyOwner {
         for(uint i = 0; i < _emails.length; i++) {
             b.whiteEmailAddresses.push(_emails[i]);  // 投票者情報をまとめた構造体vのメンバ変数whiteEmailAddressesにtempEmailを追加
@@ -97,7 +96,9 @@ contract Voting {
         }
     }
 
-    // 候補者リストに格納されている候補者名をハッシュ化していく
+    /// @notice Hash the candidate's name. and initialize the number of votes received.
+    /// @dev The reason for the initial received value of 1: 1 == decrypted　0.
+    /// Because using a cryptographic scheme that adds up exponents. (PAILLER cipher)
     function hashCandidates() public onlyOwner {
         tempVote = 1;   // 初期値
         for(uint i = 0; i < c.candidateList.length; i++) {
@@ -137,6 +138,7 @@ contract Voting {
     }
 
     // 入力bytes32 cHashに対応するvotesReceived(集計結果?)を出力する
+    /// @return 
     function totalVotesFor(bytes32 cHash) public view returns (uint256){
         if (checkBallottype() == false && checkTimelimit() == true){
             // emit VotesCounts(0);
@@ -243,14 +245,13 @@ contract Voting {
         else return true;
     }
 
-    // whiletelistに格納されている値が1であればtrue, 1でなければfalse
     function usingWhiteEmailAddress() public view returns (bool) {
         if (b.whiteListType == 1) return true;
         else return false;
     }
 
     function usingWhiteDomain() public view returns (bool) {
-        if (b.whiteListType == 1) return true;
+        if (b.whiteListType == 2) return true;
         else return false;
     }
 
