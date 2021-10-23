@@ -55,27 +55,65 @@ contract('Voting', function (accounts) {
     };
 
     describe('manage candidates/choices', () => {
-      before(async function () {
+      before(async () => {
         voting = await Voting.new(1000000, 0, 3, ballotId, 'Title', 0, owner);
-      });
-      it('should the register/hashing and get/decode candidates/choices', async () => {
         await voting.setCandidate(web3StringArrayToBytes32(choicesArray), { from: owner });
         await voting.hashCandidates({ from: owner });
+      });
+
+      it('should register and hashing candidates/choices', async () => {
+        const candidateList = await voting.getCandidateList(ballotId);
+        // TODO Should use assert.notDeepStrictEqual()
+        assert.notStrictEqual(candidateList, choicesArray);
+      });
+
+      it('should get and decode candidates/choices', async () => {
         const candidateList = await voting.getCandidateList(ballotId);
         const result = candidateList.map((c) => ethers.utils.parseBytes32String(c));
         assert.deepStrictEqual(result, choicesArray);
       });
 
-      it("shouldn't get candidate/choice list with wrong BallotID", async function () {
+      it("shouldn't get candidate/choice list with wrong BallotID", async () => {
         await truffleAssert.reverts(voting.getCandidateList(wrongBallotId), 'BallotID does not match');
       });
     });
 
-    describe('new test', () => {
-      before(async function () {
+    describe('voter registration and management of whitelisted email addresses and domains', () => {
+      before(async () => {
         voting = await Voting.new(1000000, 0, 3, ballotId, 'Title', 0, owner);
       });
-      it('should assert true', async function () {
+
+      it('register as a voter', async () => {
+        return assert.isTrue(true);
+      });
+
+      it("not registered, can't vote", async () => {
+        return assert.isTrue(true);
+      });
+
+      it('user with E-mail address that is on the whitelist can vote', async () => {
+        return assert.isTrue(true);
+      });
+
+      it('user with domain that is on the whitelist can vote', async () => {
+        return assert.isTrue(true);
+      });
+
+      it("user with E-mail address that is not on the whitelist can't vote", async () => {
+        return assert.isTrue(true);
+      });
+
+      it("user with domain that is not on the whitelist can't vote", async () => {
+        return assert.isTrue(true);
+      });
+    });
+
+    describe('voting', () => {
+      before(async () => {
+        voting = await Voting.new(1000000, 0, 3, ballotId, 'Title', 0, owner);
+      });
+
+      it('should increase that the number of votes cast for a voted candidate/option', async () => {
         return assert.isTrue(true);
       });
     });
