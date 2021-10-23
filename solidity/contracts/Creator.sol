@@ -177,19 +177,6 @@ contract Voting {
         else return 0;  // 他の状態であれば0を返す
     }
 
-    // 投票用紙IDとそれに対応するVotingコントラクトのアドレスをリンクする
-    // address _ballotAddr : Votingコントラクトのアドレス
-    // uint32 _ballotID    : 投票用紙ID
-    function setAddress(address _ballotAddr, uint32 _ballotID) public {
-        b.votingAddress[_ballotID] = _ballotAddr;   // 投票用紙IDにVotingコントラクトアドレスを紐付ける
-        b.ballotID[_ballotAddr] = _ballotID;        // Votingコントラクトアドレスに投票用紙IDを紐付ける
-    }
-
-    // 入力値の投票用紙IDに紐付いているコントラクトアドレスを出力
-    function getAddress(uint32 _ballotID) public view returns (address) {
-        return b.votingAddress[_ballotID];
-    }
-
     // 入力値bytes32 xをstring型に変換
     function bytes32ToString(bytes32 x) public pure returns (string memory) {
         bytes memory bytesString = new bytes(32);
@@ -309,7 +296,7 @@ contract Creator {
     );
 
     mapping (uint32 => address) votes;      // Ballot ID => Voting conract address
-    mapping (address => uint32) ballotIDs;  // Voting conract address => Ballot ID 
+    mapping (address => uint32) ballotIds;  // Voting conract address => Ballot ID 
     
     address owner;
 
@@ -317,11 +304,15 @@ contract Creator {
     public {
         Voting newVoting = new Voting(_timeLimit, _ballotType, _voteLimit, _ballotId, _title, _whiteListType, msg.sender);
         votes[_ballotId] = address(newVoting);
-        ballotIDs[address(newVoting)] = _ballotId;
+        ballotIds[address(newVoting)] = _ballotId;
         emit newVotingContractEvent(address(newVoting));
     }
 
-    function getAddress(uint32 _ballotId) public view returns(Voting contractAddress) {
+    function getAddress(uint32 _ballotId) public view returns(address) {
         return votes[_ballotId];
+    }
+
+    function getBallotId(address _voting) public view returns(uint32 _ballotId) {
+        return ballotIds[_voting];
     }
 }
