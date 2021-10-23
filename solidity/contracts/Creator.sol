@@ -90,10 +90,18 @@ contract Voting {
         }
     }
 
-    function setWhiteDomain(bytes32[] memory _domain) public onlyOwner {
-        for(uint i = 0; i < _domain.length; i++) {
-            b.whiteDomains.push(_domain[i]);
+    function setWhiteDomain(bytes32[] memory _domains) public onlyOwner {
+        for(uint i = 0; i < _domains.length; i++) {
+            b.whiteDomains.push(_domains[i]);
         }
+    }
+
+    function addWhiteEmailAddress(bytes32 _email) public onlyOwner {
+        b.whiteEmailAddresses.push(_email);
+    }
+
+    function addWhiteDomain(bytes32 _domain) public onlyOwner {
+        b.whiteDomains.push(_domain);
     }
 
     /// @notice Hash the candidate's name. and initialize the number of votes received.
@@ -155,10 +163,6 @@ contract Voting {
         v.voterID[_email] = _idnum;           // 入力されたEmailアドレスと学生/従業員ID番号を対応付け
         v.voterAddr[_email] = msg.sender;    // 入力されたEmailアドレスEtherumアカウントアドレスの対応付け
         v.voterEmail[_idnum] = _email;        // 入力された学生/従業員ID番号とEmailアドレスの対応付け
-    }
-
-    function addWhiteDomain(bytes32 _domain) public onlyOwner {
-        b.whiteDomains.push(_domain);
     }
 
     // このメソッドを呼び出したユーザーが登録済みか否かを確認する
