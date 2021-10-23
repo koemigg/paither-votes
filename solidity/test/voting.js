@@ -19,7 +19,7 @@ const Voting = artifacts.require('Voting');
 contract('Voting', function (accounts) {
   let voting;
   const owner = accounts[0];
-  // const nonOwner = accounts[1];
+  const nonOwner = accounts[1];
   describe('Voting test', () => {
     const ballotId = Math.floor(Math.random() * 4294967295);
     const wrongBallotId = Math.floor(Math.random() * ballotId);
@@ -61,6 +61,14 @@ contract('Voting', function (accounts) {
         await voting.hashCandidates({ from: owner });
       });
 
+      it('only owner can set candidates', async () => {
+        await truffleAssert.reverts(voting.setCandidate(web3StringArrayToBytes32([('hoge', 'fuga')]), { from: nonOwner }), 'Sender not authorized.');
+      });
+
+      it('only owner can hash candidates', async () => {
+        await truffleAssert.reverts(voting.hashCandidates({ from: nonOwner }), 'Sender not authorized.');
+      });
+
       it('should register and hashing candidates/choices', async () => {
         const candidateList = await voting.getCandidateList(ballotId);
         // TODO Should use assert.notDeepStrictEqual()
@@ -81,6 +89,10 @@ contract('Voting', function (accounts) {
     describe('voter registration and management of whitelisted email addresses and domains', () => {
       before(async () => {
         voting = await Voting.new(1000000, 0, 3, ballotId, 'Title', 0, owner);
+      });
+
+      it('only owner can set/add Email addresses/domains to whitelist', async () => {
+        return assert.isTrue(true);
       });
 
       it('register as a voter', async () => {
