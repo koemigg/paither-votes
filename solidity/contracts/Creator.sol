@@ -96,12 +96,12 @@ contract Voting {
         }
     }
 
-    function addWhiteEmailAddress(bytes32 _email) public onlyOwner {
-        b.whiteEmailAddresses.push(_email);
+    function addWhiteEmailAddress(bytes32[] memory _emails) public onlyOwner {
+        setWhiteEmailAddress(_emails);
     }
 
-    function addWhiteDomain(bytes32 _domain) public onlyOwner {
-        b.whiteDomains.push(_domain);
+    function addWhiteDomain(bytes32[] memory _domains) public onlyOwner {
+        setWhiteDomain(_domains);
     }
 
     /// @notice Hash the candidate's name. and initialize the number of votes received.
