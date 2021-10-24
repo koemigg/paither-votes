@@ -862,7 +862,7 @@ window.registerToVote = async function () {
     $('#email').val(''); // メールアドレス入力欄をリセット
 
     // コントラクトに投票者情報を登録
-    let result = await registrarContract.registerVoter(emailToBytes, idNumber, domain, permreq);
+    let result = await registrarContract.registerVoter(emailToBytes, idNumber, domain);
     window.alert('Account ready to vote!');
     // window.alert("It took" + (performance.now() - t0) + "ms to finish");
     console.log('TX HASH:', result);
@@ -929,10 +929,8 @@ window.voteForCandidate = function () {
                 votingContract.getCandidateList(ballotID).then(function (candidateArray) {
                   for (let i = 0; i < candidateArray.length; i++) {
                     let hcand = ethers.utils.parseBytes32String(candidateArray[i]);
-                    // let hcand = web3.toUtf8(candidateArray[i]);
                     console.log('hcand=' + hcand);
                     let encodeName = funcs.AbiEncode(hcand);
-                    // let encodeName = hcand;
 
                     let hcHash = ethers.utils.keccak256(encodeName);
 
