@@ -288,6 +288,10 @@ contract Voting {
     function getTitle() public view returns (string memory) {
         return b.title;
     }
+
+    function getAddress()public view returns (address) {
+        return address(this);
+    }
 }
 
 //                         //
