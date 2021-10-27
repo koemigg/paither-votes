@@ -98,7 +98,7 @@ contract('Voting', function (accounts) {
       const id = 2021;
       const domain = 'example.com';
       const wrongDomain = 'wrongexample.com';
-      const generateVotesList = (candidateArray, candidateName, votingAddress) => {
+      const generateVotesList = (candidateArray, candidateName) => {
         let encodeName = AbiEncode(candidateName);
         let cHash = ethers.utils.keccak256(encodeName);
         for (let i = 0; i < candidateArray.length; i++) {
@@ -109,14 +109,14 @@ contract('Voting', function (accounts) {
           let input2 = 0;
           let votesArray = [];
           if (hcHash == cHash) {
-            return encrypt(hcHash, input1, i, candidateArray, email, votingAddress, votesArray);
+            return encrypt(hcHash, input1, i, candidateArray, email, votesArray);
           } else {
-            return encrypt(hcHash, input2, i, candidateArray, email, votingAddress, votesArray);
+            return encrypt(hcHash, input2, i, candidateArray, email, votesArray);
           }
         }
       };
 
-      const encrypt = (hcHash, vnum, i, candidateArray, email, votingAddress, votesArray) => {
+      const encrypt = (hcHash, vnum, i, candidateArray, email, votesArray) => {
         let einput1;
         $.ajax({
           type: 'GET',
@@ -129,25 +129,25 @@ contract('Voting', function (accounts) {
 
               if (einput1 != 0) {
                 // 集計結果が0でなければ, 今回の投票文を加算する
-                return add(eoutput1, einput1, i, candidateArray, email, votingAddress, votesArray);
+                return add(eoutput1, einput1, i, candidateArray, email, votesArray);
               }
             });
           },
         });
       };
 
-      const add = (eoutput1, einput1, i, candidateArray, email, votingAddress, votesArray) => {
+      const add = (eoutput1, einput1, i, candidateArray, email, votesArray) => {
         $.ajax({
           type: 'GET',
           url: 'http://localhost:3000/crypto/add/' + eoutput1 + '/' + einput1, // 二つの暗号文を加算する
           success: function (eadd1) {
             // 加算結果をコントラクトに登録
-            return verifyTimestamp(eadd1, i, candidateArray, email, votingAddress, votesArray);
+            return verifyTimestamp(eadd1, i, candidateArray, email, votesArray);
           },
         });
       };
 
-      const verifyTimestamp = (eadd1, i, candidateArray, email, votingAddress, votesArray) => {
+      const verifyTimestamp = (eadd1, i, candidateArray, email, votesArray) => {
         voting.checkTimelimit().then(function (v) {
           let timecheck = v.toString();
           if (timecheck == 'false') {
@@ -207,24 +207,29 @@ contract('Voting', function (accounts) {
       //   await truffleAssert.reverts(voting.voteForCandidate(generateVotesList(candidateList, 'truffle', voting), W3STB32(email), W3STB32(domain), candidateList, { from: nonVoter }), 'E-mail address and Ethereum address mismatch!');
       // });
 
-      it('user with E-mail address that is on the whitelist can vote', async () => {
-        // Whitelist type: E-mail
-        voting = await Voting.new(1000000, 0, 3, ballotId, 'Title', 1, owner);
-        const candidateList = await voting.getCandidateList(ballotId);
-        voting.voteForCandidate(generateVotesList(candidateList, 'truffle', voting), W3STB32(email), W3STB32(domain), candidateList, { from: voter }).then(() => {
-          return assert.isTrue(true);
-        });
-      });
+      // it('user with E-mail address that is on the whitelist can vote', async () => {
+      //   // Whitelist type: E-mail
+      //   voting = await Voting.new(1000000, 0, 3, ballotId, 'Title', 1, owner);
+      //   const candidateList = await voting.getCandidateList(ballotId);
+      //   let candidateArray = [];
+      //   for (let i = 0; i < candidateList.length; i++) {
+      //     candidateArray[i] = ethers.utils.parseBytes32String(candidateList[i]);
+      //   }
+      //   return voting.voteForCandidate(generateVotesList(candidateList, 'truffle'), W3STB32(email), W3STB32(domain), W3SATB32(candidateArray), { from: voter }).then(() => {
+      //     assert.isTrue(false);
+      //   });
+      // });
 
       it("user with E-mail address that is not on the whitelist can't vote", async () => {
+        voting = await Voting.new(1000000, 0, 3, ballotId, 'Title', 1, owner);
         const candidateList = await voting.getCandidateList(ballotId);
-        voting
-          .voteForCandidate(generateVotesList(candidateList, 'truffle', voting), W3STB32(email), W3STB32(domain), candidateList, { from: voter })
+        return voting
+          .voteForCandidate(generateVotesList(candidateList, 'truffle'), W3STB32(email), W3STB32(domain), candidateList, { from: voter })
           .then(() => {
-            return assert.isTrue(false);
+            assert.isTrue(false);
           })
           .catch(() => {
-            return assert.isTrue(true);
+            assert.isTrue(true);
           });
       });
 
