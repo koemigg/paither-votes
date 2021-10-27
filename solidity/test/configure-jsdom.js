@@ -1,3 +1,3 @@
 require('jsdom-global')(undefined, {
-  url: 'http://example.com',
+  url: 'http://localhost:3000',
 });
