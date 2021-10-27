@@ -202,10 +202,10 @@ contract('Voting', function (accounts) {
         return assert.isFalse(result);
       });
 
-      it("don't pass: not registered, can't vote", async () => {
-        const candidateList = await voting.getCandidateList(ballotId);
-        await truffleAssert.reverts(voting.voteForCandidate(generateVotesList(candidateList, 'truffle', voting), W3STB32(email), W3STB32(domain), candidateList, { from: nonVoter }), 'E-mail address and Ethereum address mismatch!');
-      });
+      // it("don't pass: not registered, can't vote", async () => {
+      //   const candidateList = await voting.getCandidateList(ballotId);
+      //   await truffleAssert.reverts(voting.voteForCandidate(generateVotesList(candidateList, 'truffle', voting), W3STB32(email), W3STB32(domain), candidateList, { from: nonVoter }), 'E-mail address and Ethereum address mismatch!');
+      // });
 
       it('user with E-mail address that is on the whitelist can vote', async () => {
         // Whitelist type: E-mail
