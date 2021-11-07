@@ -200,3 +200,4 @@ yarn-error.log*
 client/src/old-src
 .idea
 .vscode
+.prettierrc

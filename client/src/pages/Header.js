@@ -16,12 +16,16 @@ export const Header = (props) => {
       <Menu mode="horizontal">
         <Menu.Item key="/vote">
           <Link to="/Vote">
-            Vote <span>🗳️</span>
+            <span role="img" aria-label="Vote">
+              Vote 🗳️
+            </span>
           </Link>
         </Menu.Item>
         <Menu.Item key="/create">
           <Link to="/Create">
-            Create poll <span>⚖️</span>
+            <span role="img" aria-label="Vote">
+              Create poll ⚖️
+            </span>
           </Link>
         </Menu.Item>
       </Menu>
