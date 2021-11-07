@@ -67,23 +67,23 @@ function Main() {
     <main>
       <div className="container">
         <Header title={'Create Poll ⚖️'} backPageName={''} />
-        <h1>Create poll on this page.</h1>
-        <h3>This is Test Phase.</h3>
-        <h2>Status</h2>
-        <p>
-          Account: <i>{accounts}</i>
-        </p>
-        <Space direction="horizontal" size="large" align="center" split={<Divider type="vertical" />}>
-          <p>
+        <Space direction="vertical" size="small" align="center" split={<Divider type="horizontal" />}>
+          <div>
+            <h1>Create poll on this page.</h1>
+            Follow the instructions below to create your ballot!
+          </div>
+          <div>
+            <h2>Status</h2>
+            Account: <i>{accounts}</i>
+          </div>
+          <Space direction="horizontal" size="large" align="center" split={<Divider type="vertical" />}>
             <Button type="primary" onClick={onClickConnect}>
               Connect
             </Button>
-          </p>
-          <p>
             <Button type="primary" onClick={onClickGetContract}>
               Get Contract
             </Button>
-          </p>
+          </Space>
         </Space>
         <br />
         <br />
