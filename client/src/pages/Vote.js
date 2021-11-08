@@ -1,8 +1,8 @@
 import React from 'react'
-import SimpleStorageContract from '../contracts/SimpleStorage.json'
 import { ethers } from 'ethers'
 import { Button, Table, Space, Divider, Input, Layout, Typography } from 'antd'
 import { Header } from './Header'
+import SimpleStorageContract from '../contracts/SimpleStorage.json'
 
 const { Content, Footer } = Layout
 const { Title } = Typography

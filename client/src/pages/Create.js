@@ -1,9 +1,9 @@
 import React from 'react'
-import SimpleStorageContract from '../contracts/SimpleStorage.json'
 import { ethers } from 'ethers'
 import { Button, Space, Divider, Input, Radio, DatePicker, TimePicker, InputNumber, Layout, Typography } from 'antd'
 import { Header } from './Header'
 import moment from 'moment'
+import SimpleStorageContract from '../contracts/SimpleStorage.json'
 
 const { Content, Footer } = Layout
 const { Title } = Typography
@@ -11,6 +11,8 @@ const { Title } = Typography
 function Main() {
   const [contract, setContract] = React.useState()
   const [accounts, setAccounts] = React.useState('No account connected.')
+  const [ballotType, setBallotType] = React.useState()
+  const [whitelistType, setWhitelistType] = React.useState()
 
   const isMetaMaskConnected = () => accounts && accounts.length > 0
 
@@ -40,12 +42,6 @@ function Main() {
       console.error(error)
     }
   }
-
-  // const onSearch = (value) => console.log(value);
-  // const { Search } = Input;
-
-  const [ballotType, setBallotType] = React.useState()
-  const [whitelistType, setWhitelistType] = React.useState()
 
   const onChangeBallotType = (e) => {
     console.log('radio checked', e.target.value)
