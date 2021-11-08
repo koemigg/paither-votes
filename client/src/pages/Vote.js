@@ -1,8 +1,11 @@
 import React from 'react'
 import SimpleStorageContract from '../contracts/SimpleStorage.json'
 import { ethers } from 'ethers'
-import { Button, Table, Space, Divider, Input } from 'antd'
+import { Button, Table, Space, Divider, Input, Layout, Typography } from 'antd'
 import { Header } from './Header'
+
+const { Content, Footer } = Layout
+const { Title } = Typography
 
 function Main() {
   const [storageValue, setStorageValue] = React.useState('0')
@@ -79,92 +82,93 @@ function Main() {
   const { Search } = Input
 
   return (
-    <main>
-      <div className="container">
-        <Header title={'Vote 🗳️'} backPageName={''} />
-        <Space direction="vertical" size="small" align="center" split={<Divider type="horizontal" />}>
-          <div>
-            <h1>Vote on this page.</h1>
-            Follow the instructions below to cast your vote!
-          </div>
-          <div>
-            <h2>Status</h2>
-            Account: <i>{accounts}</i>
-          </div>
-          <Space direction="horizontal" size="large" align="center" split={<Divider type="vertical" />}>
-            <Button type="primary" onClick={onClickConnect}>
-              Connect
-            </Button>
-            <Button type="primary" onClick={onClickGetContract}>
-              Get Contract
-            </Button>
-            <Button type="primary" onClick={onClickExcute}>
-              Excute
-            </Button>
+    <Layout className="layout">
+      <Header title={'Vote 🗳️'} backPageName={''} />
+      <Content style={{ padding: '0 50px' }}>
+        <div className="site-layout-content">
+          <Space direction="vertical" size="small" align="center" split={<Divider type="horizontal" />}>
+            <div>
+              <Title>Vote on this page.</Title>
+              Follow the instructions below to cast your vote!
+            </div>
+            <div>
+              <h2>Status</h2>
+              Account: <i>{accounts}</i>
+            </div>
+            <Space direction="horizontal" size="large" align="center" split={<Divider type="vertical" />}>
+              <Button type="primary" onClick={onClickConnect}>
+                Connect
+              </Button>
+              <Button type="primary" onClick={onClickGetContract}>
+                Get Contract
+              </Button>
+              <Button type="primary" onClick={onClickExcute}>
+                Excute
+              </Button>
+            </Space>
           </Space>
-        </Space>
-        <br />
-        <br />
-        <br />
-        <div>
-          <Table
-            rowSelection={{
-              type: 'radio',
-              columnWidth: 20 // not working ?
-            }}
-            columns={columns}
-            dataSource={data}
-            size="default"
-            title={() => 'Here is Title'}
-          />
+          <br />
+          <br />
+          <br />
+          <div>
+            <Table
+              rowSelection={{
+                type: 'radio',
+                columnWidth: 20 // not working ?
+              }}
+              columns={columns}
+              dataSource={data}
+              size="default"
+              title={() => 'Here is Title'}
+            />
+          </div>
+          <br />
+          <br />
+          <br />
+          <Space size="large" align="top" split={<Divider type="vertical" />}>
+            <Space direction="vertical" size="small" align="center">
+              <h2>Register</h2>
+              <div>Register to vote.</div>
+              <Button type="primary">Register</Button>
+            </Space>
+            <Space direction="vertical" size="small" align="center">
+              <h2>Load Ballot</h2>
+              <div>Load Ballot.</div>
+              <Search
+                style={{ width: 300 }}
+                placeholder="input Ballot ID"
+                allowClear
+                enterButton="Load"
+                size="middle"
+                onSearch={onSearch}
+              />
+            </Space>
+            <Space direction="vertical" size="small" align="center">
+              <h2>Vote</h2>
+              <div>Vote for your choice (Load Ballot prior to this.).</div>
+              <Search
+                style={{ width: 300 }}
+                placeholder="E-mail adderess"
+                allowClear
+                enterButton="Vote"
+                size="middle"
+                onSearch={onSearch}
+              />
+            </Space>
+          </Space>
+          <br />
+          <br />
+          <br />
+          <div>The stored value is: {storageValue}</div>
         </div>
-        <br />
-        <br />
-        <br />
-        <Space size="large" align="top" split={<Divider type="vertical" />}>
-          <Space direction="vertical" size="small" align="center">
-            <h2>Register</h2>
-            <div>Register to vote.</div>
-            <Button type="primary">Register</Button>
-          </Space>
-          <Space direction="vertical" size="small" align="center">
-            <h2>Load Ballot</h2>
-            <div>Load Ballot.</div>
-            <Search
-              style={{ width: 300 }}
-              placeholder="input Ballot ID"
-              allowClear
-              enterButton="Load"
-              size="middle"
-              onSearch={onSearch}
-            />
-          </Space>
-          <Space direction="vertical" size="small" align="center">
-            <h2>Vote</h2>
-            <div>Vote for your choice (Load Ballot prior to this.).</div>
-            <Search
-              style={{ width: 300 }}
-              placeholder="E-mail adderess"
-              allowClear
-              enterButton="Vote"
-              size="middle"
-              onSearch={onSearch}
-            />
-          </Space>
-        </Space>
-        <br />
-        <br />
-        <br />
-        <div>The stored value is: {storageValue}</div>
-      </div>
-    </main>
+      </Content>
+      <Footer style={{ textAlign: 'center' }} className="footer">
+        Footer
+      </Footer>
+    </Layout>
   )
 }
 
 export default function Vote() {
-  return (
-    <div>
-      <Main />
-    </div>
-  )
+  return <Main />
 }

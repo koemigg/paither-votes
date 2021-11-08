@@ -17,9 +17,23 @@ code {
   text-align: center;
 }
 
+.layout{
+  background: #fff;
+}
+
+.footer{
+  background: #fff;
+}
+
 .site-page-header {
   padding: 24px;
-  background-color: #ffff;
+}
+
+.site-layout-content {
+  min-height: 280px;
+  padding: 24px;
+  background: #fff;
+  text-align: center;
 }
 
 #loader {
