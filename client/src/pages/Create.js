@@ -55,7 +55,6 @@ function Main() {
   const onChangeWhitelistType = (e) => {
     console.log('radio checked', e.target.value)
     setWhitelistType(e.target.value)
-    console.log(whitelistType)
   }
 
   const onChangeTime = (time, timeString) => {
@@ -160,6 +159,6 @@ function Main() {
   )
 }
 
-export default function Vote() {
+export default function Create() {
   return <Main />
 }

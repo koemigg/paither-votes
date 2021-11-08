@@ -28,6 +28,13 @@ export const Header = (props) => {
             </span>
           </Link>
         </Menu.Item>
+        <Menu.Item key="/settings">
+          <Link to="/Settings">
+            <span role="img" aria-label="Settings">
+              Seetings ⚙️
+            </span>
+          </Link>
+        </Menu.Item>
       </Menu>
       <PageHeader
         className="site-page-header"
