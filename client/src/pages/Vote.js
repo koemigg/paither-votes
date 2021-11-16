@@ -83,7 +83,7 @@ function Main() {
 
   return (
     <Layout className="layout">
-      <Header title={'Vote 🗳️'} backPageName={''} />
+      <Header title={'Vote 🗳️'} />
       <Content style={{ padding: '0 50px' }}>
         <div className="site-layout-content">
           <Space direction="vertical" size="small" align="center" split={<Divider type="horizontal" />}>
@@ -114,7 +114,7 @@ function Main() {
             <Table
               rowSelection={{
                 type: 'radio',
-                columnWidth: 20 // not working ?
+                columnWidth: 20
               }}
               columns={columns}
               dataSource={data}
