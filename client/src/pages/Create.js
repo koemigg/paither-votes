@@ -7,6 +7,7 @@ import moment from 'moment'
 import { web3StringToBytes32, web3StringArrayToBytes32, AbiEncode, genLimitUnixTime } from '../Functions'
 
 import CreatorArtifacts from '../contracts/Creator.json'
+import VotingArtifacts from '../contracts/Voting.json'
 
 const { Content, Footer } = Layout
 const { Title } = Typography
@@ -15,23 +16,31 @@ function Main() {
   // for release
   // const [contract, setContract] = useState()
   // const [accounts, setAccounts] = useState('No account connected.')
+  // const [ballotId, setballotId] = useState()
   // const [email, setEmail] = useState()
   // const [ballotType, setBallotType] = useState()
   // const [title, setTitle] = useState()
   // const [choices, setChoices] = useState()
   // const [limitCount, setLimitCount] = useState()
   // const [whitelistType, setWhitelistType] = useState()
+  // const [whitlistedEmail, setWhitlistedEmail] = usestate()
+  // const [whitlistedDomain, setWhitlistedDomain] = useState()
   // const [limitDate, setLimitDate] = useState()
   // const [limitTime, setLimitTime] = useState()
   // for develop
-  const [contract, setContract] = useState()
+  const [creator, setCreator] = useState()
+  const [voting, setVoting] = useState()
+  const [signer, setSigner] = useState()
   const [accounts, setAccounts] = useState('No account connected.')
+  const [ballotId, setballotId] = useState()
   const [email, setEmail] = useState('hoge@ex.com')
   const [ballotType, setBallotType] = useState(0)
   const [title, setTitle] = useState('Test Poll')
   const [choices, setChoices] = useState('A, B, C, D')
   const [limitCount, setLimitCount] = useState('3')
   const [whitelistType, setWhitelistType] = useState(0)
+  const [whitlistedEmail, setWhitlistedEmail] = useState()
+  const [whitlistedDomain, setWhitlistedDomain] = useState()
   const [limitDate, setLimitDate] = useState(moment(new Date(2021, 12, 31, 23, 59, 59, 59)))
   const [limitTime, setLimitTime] = useState(moment(new Date(2021, 12, 31, 23, 59, 59, 59)))
 
@@ -45,7 +54,7 @@ function Main() {
     setAccounts(newAccounts)
   }
 
-  const onClickGetContract = async () => {
+  const onClickGetCreatorContract = async () => {
     try {
       if (isMetaMaskConnected()) {
         // Get the contract instance.
@@ -53,13 +62,14 @@ function Main() {
         // const { networkId } = await provider.getNetwork();
         const deployedNetwork = CreatorArtifacts.networks[5777]
         const contractAddress = deployedNetwork.address
-        const signer = provider.getSigner(0)
-        const instance = new ethers.Contract(contractAddress, CreatorArtifacts.abi, signer)
+        const _signer = provider.getSigner(0)
+        setSigner(_signer)
+        const instance = new ethers.Contract(contractAddress, CreatorArtifacts.abi, _signer)
         // const instance = new ethers.Contract(Creator.address, CreatorArtifacts.abi, signer)
-        instance.on('newVotingContractEvent', function (contractAddress) {
-          setVotingInfo(contractAddress)
+        instance.on('newVotingContractEvent', function (_address) {
+          fillVotingInfo(_address)
         })
-        setContract(instance)
+        setCreator(instance)
         console.log('Setting up contract.')
       } else {
         console.log('Metamask is not connected.')
@@ -68,20 +78,58 @@ function Main() {
       console.error(error)
     }
   }
-  const setVotingInfo = async function (votingAddress) {
+
+  const fillVotingInfo = async function (_address) {
     // TODO ボタンのローディングを解除
     console.log('Voting contract has been deployed 🎉')
-    console.log('Address: ' + votingAddress)
-    // let choices = $('#choices').val() // 候補者名一覧
-    // let choicesArray = choices.split(/\s*,\s*/) // 候補者名(Array)
-    // let whiteListType = $('input[name=whitelist]:checked').val() // ホワイトリストの形式
-    // let whitelisted = $('#whitelisted').val() // ホワイトリストに登録するメールアドレス
-    // let whitelistedDomain = $('#whitelistedDomain').val() // ホワイトリストに登録するドメイン
-    // let whitelistedArray = whitelisted.split(/\s*,\s*/) // ホワイトリストのメールアドレス(Array)
-    // let whitelistedDomainArray = whitelistedDomain.split(/\s*,\s*/) // ホワイトリストのドメイン(Array)
-    // fillSetup(votingAddress, choicesArray, whitelistedArray, whitelistedDomainArray, whiteListType)
-    // registerBallot(votingAddress, ballotID)
-    // console.log('Votingへの情報登録完了')
+    console.log('Address: ' + _address)
+    // window.alert(
+    //   'Ballot creation successful! Ballot ID: ' +
+    //     ballotId +
+    //     '\nPlease write the down the Ballot ID because it will be used to load your ballot allowing users to vote'
+    // )
+    // console.log('Ballot ID: ' + ballotId)
+    // const _voting = new ethers.Contract(_address, VotingArtifacts.abi, signer)
+    // setVoting(_voting)
+
+    // // let choices = $('#choices').val() // 候補者名一覧
+    // // let choicesArray = choices.split(/\s*,\s*/) // 候補者名(Array)
+    // // let whiteListType = $('input[name=whitelist]:checked').val() // ホワイトリストの形式
+    // // let whitelisted = $('#whitelisted').val() // ホワイトリストに登録するメールアドレス
+    // // let whitelistedDomain = $('#whitelistedDomain').val() // ホワイトリストに登録するドメイン
+    // // let whitelistedArray = whitelisted.split(/\s*,\s*/) // ホワイトリストのメールアドレス(Array)
+    // // let whitelistedDomainArray = whitelistedDomain.split(/\s*,\s*/) // ホワイトリストのドメイン(Array)
+
+    // _voting
+    //   .setCandidates(web3StringArrayToBytes32(choices.split(/\s*,\s*/)))
+    //   .then(function (result) {
+    //     console.log('Candidateの設定完了\nTX HASH: ', result)
+    //   })
+    //   .then(function () {
+    //     _voting.hashCandidates().then(function (result) {
+    //       console.log('Candidateのハッシュ化完了\nTX HASH: ', result)
+    //     })
+    //   })
+    //   .then(function () {
+    //     if (whitelistType === 1) {
+    //       _voting.setWhitelisted(web3StringArrayToBytes32(whitlistedEmail.split(/\s*,\s*/)))
+    //     }
+    //     if (whitelistType === 2) {
+    //       _voting.setWhiteListedDomain(web3StringArrayToBytes32(whitlistedDomain.split(/\s*,\s*/)))
+    //     }
+    //   })
+    //   .then(function () {
+    //     console.log('Registration of information for Voting is complete.')
+    //   })
+    //   .catch(function (error) {
+    //     throw new Error(error)
+    //   })
+  }
+
+  function genBallotId() {
+    const _ballotId = Math.floor(Math.random() * 4294967295)
+    setballotId(_ballotId)
+    return _ballotId
   }
 
   const onChangeEmail = (e) => {
@@ -114,6 +162,16 @@ function Main() {
     setWhitelistType(e.target.value)
   }
 
+  const onChangeWhitlistEmail = (e) => {
+    console.log('Whitelisted E-mail set', e.target.value)
+    setWhitlistedEmail(e.target.value)
+  }
+
+  const onChangeWhitlistDomain = (e) => {
+    console.log('Whitelisted domain set', e.target.value)
+    setWhitlistedDomain(e.target.value)
+  }
+
   const onChangeDate = (date, dateString) => {
     console.log('Limit date set', date, dateString)
     setLimitDate(date)
@@ -129,11 +187,11 @@ function Main() {
    * @note Testnet is plus 7 hours.
    */
   const onClickCreate = () => {
-    contract.createBallot(
+    creator.createBallot(
       genLimitUnixTime(limitDate, limitTime),
       ballotType,
       limitCount,
-      Math.floor(Math.random() * 4294967295),
+      genBallotId(),
       title,
       whitelistType
     )
@@ -157,7 +215,7 @@ function Main() {
               <Button type="primary" onClick={onClickConnect}>
                 Connect
               </Button>
-              <Button type="primary" onClick={onClickGetContract}>
+              <Button type="primary" onClick={onClickGetCreatorContract}>
                 Get Contract
               </Button>
             </Space>
@@ -201,13 +259,21 @@ function Main() {
                   <b>Email</b> (only certain E-mails are allowed to vote)
                 </Radio>
                 {whitelistType === 1 ? (
-                  <Input style={{ width: 400 }} placeholder="Whitelisted E-mail addresses (if applicable)" />
+                  <Input
+                    onChange={onChangeWhitlistEmail}
+                    style={{ width: 400 }}
+                    placeholder="Whitelisted E-mail addresses (if applicable)"
+                  />
                 ) : null}
                 <Radio value={2}>
                   <b>Domain</b> (only E-mails having certain domain are allowed to vote)
                 </Radio>
                 {whitelistType === 2 ? (
-                  <Input style={{ width: 400 }} placeholder="Whitelisted domains (if applicable)" />
+                  <Input
+                    onChange={onChangeWhitlistDomain}
+                    style={{ width: 400 }}
+                    placeholder="Whitelisted domains (if applicable)"
+                  />
                 ) : null}
               </Space>
             </Radio.Group>
