@@ -16,7 +16,7 @@ function Main() {
   // for release
   // const [contract, setContract] = useState()
   // const [accounts, setAccounts] = useState('No account connected.')
-  // const [ballotId, setballotId] = useState()
+  // const [ballotId, setballotId] = useState(Math.floor(Math.random() * 4294967295))
   // const [email, setEmail] = useState()
   // const [ballotType, setBallotType] = useState()
   // const [title, setTitle] = useState()
@@ -30,9 +30,8 @@ function Main() {
   // for develop
   const [creator, setCreator] = useState()
   const [voting, setVoting] = useState()
-  const [signer, setSigner] = useState()
   const [accounts, setAccounts] = useState('No account connected.')
-  const [ballotId, setballotId] = useState()
+  const [ballotId, setballotId] = useState(Math.floor(Math.random() * 4294967295))
   const [email, setEmail] = useState('hoge@ex.com')
   const [ballotType, setBallotType] = useState(0)
   const [title, setTitle] = useState('Test Poll')
@@ -59,14 +58,17 @@ function Main() {
       if (isMetaMaskConnected()) {
         // Get the contract instance.
         const provider = new ethers.providers.Web3Provider(window.ethereum)
+        const fromBlockNumber = 780
+        provider.resetEventsBlock(fromBlockNumber)
         // const { networkId } = await provider.getNetwork();
         const deployedNetwork = CreatorArtifacts.networks[5777]
         const contractAddress = deployedNetwork.address
-        const _signer = provider.getSigner(0)
-        setSigner(_signer)
-        const instance = new ethers.Contract(contractAddress, CreatorArtifacts.abi, _signer)
+        const signer = provider.getSigner(0)
+        const instance = new ethers.Contract(contractAddress, CreatorArtifacts.abi, signer)
         // const instance = new ethers.Contract(Creator.address, CreatorArtifacts.abi, signer)
-        instance.on('newVotingContractEvent', function (_address) {
+        const newVotingContractEvent = 'newVotingContractEvent'
+        let filter = instance.filters[newVotingContractEvent]()
+        instance.on(filter, function (_address) {
           fillVotingInfo(_address)
         })
         setCreator(instance)
@@ -88,42 +90,51 @@ function Main() {
     //     ballotId +
     //     '\nPlease write the down the Ballot ID because it will be used to load your ballot allowing users to vote'
     // )
-    // console.log('Ballot ID: ' + ballotId)
-    // const _voting = new ethers.Contract(_address, VotingArtifacts.abi, signer)
-    // setVoting(_voting)
+    const provider = new ethers.providers.Web3Provider(window.ethereum)
+    const signer = provider.getSigner(0)
+    console.log('Ballot ID: ' + ballotId)
+    console.log('Signer: ' + signer)
+    const _voting = new ethers.Contract(_address, VotingArtifacts.abi, signer)
+    setVoting(_voting)
 
-    // // let choices = $('#choices').val() // 候補者名一覧
-    // // let choicesArray = choices.split(/\s*,\s*/) // 候補者名(Array)
-    // // let whiteListType = $('input[name=whitelist]:checked').val() // ホワイトリストの形式
-    // // let whitelisted = $('#whitelisted').val() // ホワイトリストに登録するメールアドレス
-    // // let whitelistedDomain = $('#whitelistedDomain').val() // ホワイトリストに登録するドメイン
-    // // let whitelistedArray = whitelisted.split(/\s*,\s*/) // ホワイトリストのメールアドレス(Array)
-    // // let whitelistedDomainArray = whitelistedDomain.split(/\s*,\s*/) // ホワイトリストのドメイン(Array)
+    // let choices = $('#choices').val() // 候補者名一覧
+    // let choicesArray = choices.split(/\s*,\s*/) // 候補者名(Array)
+    // let whiteListType = $('input[name=whitelist]:checked').val() // ホワイトリストの形式
+    // let whitelisted = $('#whitelisted').val() // ホワイトリストに登録するメールアドレス
+    // let whitelistedDomain = $('#whitelistedDomain').val() // ホワイトリストに登録するドメイン
+    // let whitelistedArray = whitelisted.split(/\s*,\s*/) // ホワイトリストのメールアドレス(Array)
+    // let whitelistedDomainArray = whitelistedDomain.split(/\s*,\s*/) // ホワイトリストのドメイン(Array)
 
-    // _voting
-    //   .setCandidates(web3StringArrayToBytes32(choices.split(/\s*,\s*/)))
-    //   .then(function (result) {
-    //     console.log('Candidateの設定完了\nTX HASH: ', result)
-    //   })
-    //   .then(function () {
-    //     _voting.hashCandidates().then(function (result) {
-    //       console.log('Candidateのハッシュ化完了\nTX HASH: ', result)
-    //     })
-    //   })
-    //   .then(function () {
-    //     if (whitelistType === 1) {
-    //       _voting.setWhitelisted(web3StringArrayToBytes32(whitlistedEmail.split(/\s*,\s*/)))
-    //     }
-    //     if (whitelistType === 2) {
-    //       _voting.setWhiteListedDomain(web3StringArrayToBytes32(whitlistedDomain.split(/\s*,\s*/)))
-    //     }
-    //   })
-    //   .then(function () {
-    //     console.log('Registration of information for Voting is complete.')
-    //   })
-    //   .catch(function (error) {
-    //     throw new Error(error)
-    //   })
+    _voting
+      .setCandidates(web3StringArrayToBytes32(choices.split(/\s*,\s*/)))
+      .then(function (result) {
+        console.log('Candidateの設定完了\nTX HASH: ', result)
+      })
+      .catch(function (error) {
+        throw new Error(error)
+      })
+      .then(function () {
+        _voting
+          .hashCandidates()
+          .then(function (result) {
+            console.log('Candidateのハッシュ化完了\nTX HASH: ', result)
+          })
+          .then(function () {
+            if (whitelistType === 1) {
+              _voting.setWhitelisted(web3StringArrayToBytes32(whitlistedEmail.split(/\s*,\s*/)))
+            }
+            if (whitelistType === 2) {
+              _voting.setWhiteListedDomain(web3StringArrayToBytes32(whitlistedDomain.split(/\s*,\s*/)))
+            }
+          })
+          .then(function () {
+            console.log('Registration of information for Voting is complete.')
+            genBallotId()
+          })
+          .catch(function (error) {
+            throw new Error(error)
+          })
+      })
   }
 
   function genBallotId() {
@@ -187,14 +198,7 @@ function Main() {
    * @note Testnet is plus 7 hours.
    */
   const onClickCreate = () => {
-    creator.createBallot(
-      genLimitUnixTime(limitDate, limitTime),
-      ballotType,
-      limitCount,
-      genBallotId(),
-      title,
-      whitelistType
-    )
+    creator.createBallot(genLimitUnixTime(limitDate, limitTime), ballotType, limitCount, ballotId, title, whitelistType)
   }
 
   return (

@@ -16,8 +16,8 @@ export function web3StringToBytes32(text) {
 export function web3StringArrayToBytes32(strArray) {
   var bytes32Array = []
   strArray.forEach((element) => {
-    console.log(element)
-    bytes32Array.push(this.web3StringToBytes32(element))
+    // console.log(element)
+    bytes32Array.push(web3StringToBytes32(element))
   })
   return bytes32Array
 }
