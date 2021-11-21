@@ -4,7 +4,7 @@ import { Button, Space, Divider, Input, Radio, DatePicker, TimePicker, InputNumb
 import { Header } from './Header'
 import moment from 'moment'
 
-import { web3StringToBytes32, web3StringArrayToBytes32, AbiEncode, genLimitUnixTime } from '../Functions'
+import { web3StringArrayToBytes32, genLimitUnixTime } from '../Functions'
 
 import CreatorArtifacts from '../contracts/Creator.json'
 import VotingArtifacts from '../contracts/Voting.json'
@@ -29,7 +29,7 @@ function Main() {
   // const [limitTime, setLimitTime] = useState()
   // for develop
   const [creator, setCreator] = useState()
-  const [voting, setVoting] = useState()
+  // const [voting, setVoting] = useState()
   const [accounts, setAccounts] = useState('No account connected.')
   const [ballotId, setballotId] = useState(Math.floor(Math.random() * 4294967295))
   const [email, setEmail] = useState('hoge@ex.com')
@@ -95,7 +95,7 @@ function Main() {
     console.log('Ballot ID: ' + ballotId)
     console.log('Signer: ' + signer)
     const _voting = new ethers.Contract(_address, VotingArtifacts.abi, signer)
-    setVoting(_voting)
+    // setVoting(_voting)
 
     // let choices = $('#choices').val() // 候補者名一覧
     // let choicesArray = choices.split(/\s*,\s*/) // 候補者名(Array)
