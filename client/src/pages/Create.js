@@ -106,7 +106,7 @@ function Main() {
     // let whitelistedDomainArray = whitelistedDomain.split(/\s*,\s*/) // ホワイトリストのドメイン(Array)
 
     _voting
-      .setCandidates(web3StringArrayToBytes32(choices.split(/\s*,\s*/)))
+      .setCandidate(web3StringArrayToBytes32(choices.split(/\s*,\s*/)))
       .then(function (result) {
         console.log('Candidateの設定完了\nTX HASH: ', result)
       })
