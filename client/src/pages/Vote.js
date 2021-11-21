@@ -10,10 +10,24 @@ const { Title } = Typography
 const { Search } = Input
 
 function Main() {
-  const [storageValue, setStorageValue] = React.useState('0')
   const [voting, setVoting] = useState()
-  const [contract, setContract] = React.useState()
-  const [accounts, setAccounts] = React.useState('No account connected.')
+  const [creator, setCreator] = useState()
+  const [accounts, setAccounts] = useState('No account connected.')
+  const [pollTitle, setTitle] = useState('Here is title')
+  const [tableData, setTabledata] = useState([''])
+
+  const columns = [
+    {
+      title: 'Candidate/Choice',
+      dataIndex: 'name',
+      key: 'name'
+    },
+    {
+      title: 'Vote',
+      dataIndex: 'vote',
+      key: 'vote'
+    }
+  ]
 
   const isMetaMaskConnected = () => accounts && accounts.length > 0
 
@@ -35,7 +49,7 @@ function Main() {
         const deployedNetwork = CreatorArtifacts.networks[5777]
         const signer = provider.getSigner(0)
         const instance = new ethers.Contract(deployedNetwork.address, CreatorArtifacts.abi, signer)
-        setContract(instance)
+        setCreator(instance)
         console.log('Setting up creator contract.')
       } else {
         console.log('Metamask is not connected.')
@@ -45,46 +59,40 @@ function Main() {
     }
   }
 
-  const onClickExcute = async () => {
-    await contract.set(5)
-    const response = await contract.get()
-    setStorageValue(response.toString())
+  const onLoadBallot = async (_ballotId) => {
+    creator
+      .getAddress(_ballotId)
+      .then(function (_address) {
+        if (_address == 0) {
+          window.alert('Invalid Ballot ID')
+          throw new Error('Invalid ballot ID.')
+        } else {
+          // TODO: Loading
+          const provider = new ethers.providers.Web3Provider(window.ethereum)
+          const signer = provider.getSigner(0)
+          const _voting = new ethers.Contract(_address, VotingArtifacts.abi, signer)
+          setVoting(_voting)
+          _voting.getTitle().then(function (_title) {
+            setTitle(_title)
+            _voting.getCandidateList(_ballotId).then(function (cArr) {
+              // TODO: 得票数を取得する
+              const _tableData = cArr.map((c, i) => ({
+                key: i + 1,
+                name: ethers.utils.parseBytes32String(c),
+                vote: Math.floor(Math.random() * 10)
+              }))
+              setTabledata(_tableData)
+            })
+          })
+        }
+      })
+      .catch(function (error) {
+        console.error('投票の読み込みに失敗しました')
+        console.error(error)
+      })
   }
 
-  const onClickLoad = async () => {}
-
-  const columns = [
-    {
-      title: 'Candidate/Choice',
-      dataIndex: 'name',
-      key: 'name'
-    },
-    {
-      title: 'Vote',
-      dataIndex: 'vote',
-      key: 'vote'
-    }
-  ]
-
-  const data = [
-    {
-      key: '1',
-      name: 'John Brown',
-      vote: 32
-    },
-    {
-      key: '2',
-      name: 'Jim Green',
-      vote: 42
-    },
-    {
-      key: '3',
-      name: 'Joe Black',
-      vote: 32
-    }
-  ]
-
-  const onSearch = (value) => console.log(value)
+  const onVote = (_email) => console.log(_email)
 
   return (
     <Layout className="layout">
@@ -116,9 +124,9 @@ function Main() {
                 columnWidth: 20
               }}
               columns={columns}
-              dataSource={data}
+              dataSource={tableData}
               size="default"
-              title={() => 'Here is Title'}
+              title={() => pollTitle}
             />
           </div>
           <br />
@@ -132,9 +140,9 @@ function Main() {
                 style={{ width: 300 }}
                 placeholder="input Ballot ID"
                 allowClear
-                enterButton="onClickLoad"
+                enterButton="Load"
                 size="middle"
-                onSearch={onSearch}
+                onSearch={onLoadBallot}
               />
             </Space>
             <Space direction="vertical" size="small" align="center">
@@ -153,14 +161,13 @@ function Main() {
                 allowClear
                 enterButton="Vote"
                 size="middle"
-                onSearch={onSearch}
+                onSearch={onVote}
               />
             </Space>
           </Space>
           <br />
           <br />
           <br />
-          <div>The stored value is: {storageValue}</div>
         </div>
       </Content>
       <Footer style={{ textAlign: 'center' }} className="footer">
