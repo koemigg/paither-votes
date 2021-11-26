@@ -26,7 +26,7 @@ export function AbiEncode(str) {
   var bytes = str.split('').map((char) => char.charCodeAt(0))
   var hexs = bytes.map((byte) => byte.toString(16))
   var hex2 = hexs.length.toString(16)
-  console.log(hex2)
+  // console.log(hex2)
   var hex = hexs.join('')
   var bytes1 = '0000000000000000000000000000000000000000000000000000000000000020'
   var bytes2 = ('0000000000000000000000000000000000000000000000000000000000000000' + hex2).slice(-64)

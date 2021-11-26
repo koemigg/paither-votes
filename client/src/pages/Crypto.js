@@ -1,35 +1,63 @@
-var express = require('express')
-var paillier = require('jspaillier')
-var jsbn = require('jsbn')
-var body = require('body-parser')
-require('datejs')
+import 'datejs'
+// var express = require('express')
+const paillier = require('jspaillier')
+// var jsbn = require('jsbn')
+// var body = require('body-parser')
 
-var keys = paillier.generateKeys(128)
+const KEY_MODULES_BITS = 128
 
-var router = express.Router();
+/**
+ * Generate keys.
+ * @return {keys: {
+ *  pub: paillier.publicKey;
+ *  sec: paillier.privateKey;
+ * }}
+ */
+export function GenKeys() {
+  return paillier.generateKeys(KEY_MODULES_BITS)
+}
 
-router.get('/encrypt/:id', function(req, res) {
-    var ekey = req.params.id
-    ekey = keys.pub.encrypt(keys.pub.convertToBn(ekey)).toString()
-    res.send(ekey)
-})
+export function Encrypt(id, keys) {
+  return keys.pub.encrypt(keys.pub.convertToBn(id)).toString()
+}
 
-router.get('/decrypt/:id', function(req, res) {
-    var dkey = req.params.id
-    dkey = keys.sec.decrypt(keys.pub.convertToBn(dkey)).toString()
-    res.send(dkey)
-})
+export function Decrypt(id, keys) {
+  return keys.sec.decrypt(keys.pub.convertToBn(id)).toString()
+}
 
-router.get('/add/:id/:id2', function(req, res) {
-    var ein1 = req.params.id
-    var ein2 = req.params.id2
-    eadd = keys.pub.add(keys.pub.convertToBn(ein1), keys.pub.convertToBn(ein2)).toString()
-    res.send(eadd)
-})
+export function Add(id1, id2, keys) {
+  return keys.pub.add(keys.pub.convertToBn(id1), keys.pub.convertToBn(id2)).toString()
+}
 
-router.get('/getTime', function(req, res) {
-    var timestamp = Math.round((new Date()).getTime() / 1000)
-    res.send("" + timestamp)
-})
+export function getTime() {
+  return '' + Math.round(new Date().getTime() / 1000)
+}
+// var keys = paillier.generateKeys(128)
 
-module.exports = router;
+// var router = express.Router()
+
+// router.get('/encrypt/:id', function (req, res) {
+//   var ekey = req.params.id
+//   ekey = keys.pub.encrypt(keys.pub.convertToBn(ekey)).toString()
+//   res.send(ekey)
+// })
+
+// router.get('/decrypt/:id', function (req, res) {
+//   var dkey = req.params.id
+//   dkey = keys.sec.decrypt(keys.pub.convertToBn(dkey)).toString()
+//   res.send(dkey)
+// })
+
+// router.get('/add/:id/:id2', function (req, res) {
+//   var ein1 = req.params.id
+//   var ein2 = req.params.id2
+//   eadd = keys.pub.add(keys.pub.convertToBn(ein1), keys.pub.convertToBn(ein2)).toString()
+//   res.send(eadd)
+// })
+
+// router.get('/getTime', function (req, res) {
+//   var timestamp = Math.round(new Date().getTime() / 1000)
+//   res.send('' + timestamp)
+// })
+
+// module.exports = router

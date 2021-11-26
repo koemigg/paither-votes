@@ -198,6 +198,7 @@ yarn-debug.log*
 yarn-error.log*
 
 client/src/old-src
-.idea
+.idea/*
+!workspace.xml
 .vscode
 .prettierrc

@@ -4,7 +4,7 @@ import { Button, Space, Divider, Input, Radio, DatePicker, TimePicker, InputNumb
 import { Header } from './Header'
 import moment from 'moment'
 
-import { web3StringArrayToBytes32, genLimitUnixTime } from '../Functions'
+import { web3StringArrayToBytes32, genLimitUnixTime } from './Functions'
 
 import CreatorArtifacts from '../contracts/Creator.json'
 import VotingArtifacts from '../contracts/Voting.json'
@@ -58,8 +58,8 @@ function Main() {
       if (isMetaMaskConnected()) {
         // Get the contract instance.
         const provider = new ethers.providers.Web3Provider(window.ethereum)
-        const fromBlockNumber = 780
-        provider.resetEventsBlock(fromBlockNumber)
+        const nowBlockNumber = await provider.getBlockNumber()
+        provider.resetEventsBlock(nowBlockNumber + 1)
         // const { networkId } = await provider.getNetwork();
         const deployedNetwork = CreatorArtifacts.networks[5777]
         const contractAddress = deployedNetwork.address

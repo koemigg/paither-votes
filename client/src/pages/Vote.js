@@ -1,20 +1,30 @@
 import React, { useState } from 'react'
 import { ethers } from 'ethers'
-import { Button, Table, Space, Divider, Input, Layout, Typography } from 'antd'
+import { Button, Table, Space, Divider, Input, Layout, Typography, message } from 'antd'
 import { Header } from './Header'
+
+import { Encrypt, Decrypt, Add, getTime, GenKeys } from './Crypto'
+import { AbiEncode, web3StringToBytes32 } from './Functions'
+
 import CreatorArtifacts from '../contracts/Creator.json'
 import VotingArtifacts from '../contracts/Voting.json'
+
+const scientificToDecimal = require('scientific-to-decimal')
+const getRevertReason = require('eth-revert-reason')
 
 const { Content, Footer } = Layout
 const { Title } = Typography
 const { Search } = Input
 
 function Main() {
+  const [keys, setKeys] = useState()
   const [voting, setVoting] = useState()
   const [creator, setCreator] = useState()
   const [accounts, setAccounts] = useState('No account connected.')
   const [pollTitle, setTitle] = useState('Here is title')
   const [tableData, setTabledata] = useState([''])
+  const [email, setEmail] = useState()
+  const [id, setId] = useState()
 
   const columns = [
     {
@@ -38,6 +48,7 @@ function Main() {
     })
     setAccounts(newAccounts)
     getCreator()
+    setKeys(GenKeys())
   }
 
   const getCreator = async () => {
@@ -59,36 +70,65 @@ function Main() {
     }
   }
 
-  const onLoadBallot = async (_ballotId) => {
+  const onLoadBallot = async (ballotId) => {
     creator
-      .getAddress(_ballotId)
-      .then(function (_address) {
-        if (_address == 0) {
+      .getAddress(ballotId)
+      .then(async (address) => {
+        if (address == 0) {
           window.alert('Invalid Ballot ID')
           throw new Error('Invalid ballot ID.')
         } else {
           // TODO: Loading
           const provider = new ethers.providers.Web3Provider(window.ethereum)
           const signer = provider.getSigner(0)
-          const _voting = new ethers.Contract(_address, VotingArtifacts.abi, signer)
-          setVoting(_voting)
-          _voting.getTitle().then(function (_title) {
-            setTitle(_title)
-            _voting.getCandidateList(_ballotId).then(function (cArr) {
-              // TODO: 得票数を取得する
-              const _tableData = cArr.map((c, i) => ({
-                key: i + 1,
-                name: ethers.utils.parseBytes32String(c),
-                vote: Math.floor(Math.random() * 10)
-              }))
-              setTabledata(_tableData)
-            })
+          const voting = new ethers.Contract(address, VotingArtifacts.abi, signer)
+          setVoting(voting)
+          voting.getTitle().then((title) => {
+            setTitle(title)
+          })
+          const cArr = await voting.getCandidateList(ballotId)
+          const vArrPromise = cArr.map((c) => {
+            return voting.totalVotesFor(ethers.utils.keccak256(AbiEncode(ethers.utils.parseBytes32String(c))))
+          })
+          Promise.all(vArrPromise).then((vArr) => {
+            const tableData_ = cArr.map((c, i) => ({
+              key: i + 1,
+              name: ethers.utils.parseBytes32String(c),
+              vote: Decrypt(scientificToDecimal(vArr[i]), keys)
+            }))
+            setTabledata(tableData_)
           })
         }
       })
       .catch(function (error) {
-        console.error('投票の読み込みに失敗しました')
+        console.error('Failed to load the poll.')
         console.error(error)
+      })
+  }
+
+  const onChangeEmail = (e) => {
+    console.log('E-mail address set', e.target.value)
+    setEmail(e.target.value)
+  }
+
+  const onChangeId = (e) => {
+    console.log('ID set', e.target.value)
+    setId(e.target.value)
+  }
+
+  const onReception = async () => {
+    console.log('email', email)
+    console.log('domain', email.split('@')[1])
+    voting
+      .registerVoter(web3StringToBytes32(email), id, web3StringToBytes32(email.split('@')[1]))
+      .then(function () {
+        message.success('Success reception')
+      })
+      .catch(async function (res) {
+        // console.log('txhash', res)
+        // console.log(await getRevertReason(0xd7cdd5a470e38de45e2bc30369d664db4acaf5d6b5c020e868efab4ed869f429))
+        message.error('An error occurd')
+        // message.error(await getRevertReason(res))
       })
   }
 
@@ -146,11 +186,18 @@ function Main() {
               />
             </Space>
             <Space direction="vertical" size="small" align="center">
-              <h2>Register</h2>
-              <div>Register to vote.</div>
-              <Input style={{ width: 300 }} placeholder="E-mail Adderess" allowClear />
-              <Input style={{ width: 300 }} placeholder="Your BSU student/employee ID" allowClear />
-              <Button type="primary">Register</Button>
+              <h2>Reception</h2>
+              <div>Reception to vote.</div>
+              <Input onChange={onChangeEmail} style={{ width: 300 }} placeholder="E-mail Adderess" allowClear />
+              <Input
+                onChange={onChangeId}
+                style={{ width: 300 }}
+                placeholder="Your BSU student/employee ID"
+                allowClear
+              />
+              <Button onClick={onReception} type="primary">
+                Reception
+              </Button>
             </Space>
             <Space direction="vertical" size="small" align="center">
               <h2>Vote</h2>
