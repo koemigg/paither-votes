@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
 import { Button, Table, Space, Divider, Input, Layout, Typography, message } from 'antd'
 import { Header } from './Header'
@@ -18,7 +18,7 @@ const { Search } = Input
 
 function Main() {
   const [keys, setKeys] = useState()
-  const [voting, setVoting] = useState()
+  const [voting, setVoting] = useState(null)
   const [creator, setCreator] = useState()
   const [accounts, setAccounts] = useState('No account connected.')
   const [pollTitle, setTitle] = useState('Here is title')
@@ -26,49 +26,44 @@ function Main() {
   const [email, setEmail] = useState()
   const [id, setId] = useState()
 
-  const columns = [
-    {
-      title: 'Candidate/Choice',
-      dataIndex: 'name',
-      key: 'name'
-    },
-    {
-      title: 'Vote',
-      dataIndex: 'vote',
-      key: 'vote'
+  useEffect(() => {
+    if (window.ethereum) {
+      window.ethereum.on('chainChanged', () => {
+        window.location.reload()
+      })
+      window.ethereum.on('accountsChanged', () => {
+        window.location.reload()
+      })
     }
-  ]
+  })
 
-  const isMetaMaskConnected = () => accounts && accounts.length > 0
-
-  const onClickInit = async () => {
-    const ethereum = window.ethereum
-    const newAccounts = await ethereum.request({
-      method: 'eth_requestAccounts'
-    })
-    setAccounts(newAccounts)
-    getCreator()
-    setKeys(GenKeys())
-  }
-
-  const getCreator = async () => {
-    try {
+  useEffect(() => {
+    if (window.ethereum) {
       if (isMetaMaskConnected()) {
-        // Get the contract instance.
+        window.ethereum
+          .request({
+            method: 'eth_requestAccounts'
+          })
+          .then((newAccounts) => {
+            setAccounts(newAccounts)
+          })
+        setKeys(GenKeys())
         const provider = new ethers.providers.Web3Provider(window.ethereum)
-        // const { networkId } = await provider.getNetwork();
         const deployedNetwork = CreatorArtifacts.networks[5777]
+        const contractAddress = deployedNetwork.address
         const signer = provider.getSigner(0)
-        const instance = new ethers.Contract(deployedNetwork.address, CreatorArtifacts.abi, signer)
+        const instance = new ethers.Contract(contractAddress, CreatorArtifacts.abi, signer)
         setCreator(instance)
-        console.log('Setting up creator contract.')
+        console.log('Setting up Creator contract.')
       } else {
         console.log('Metamask is not connected.')
       }
-    } catch (error) {
-      console.error(error)
+    } else {
+      message.error('Please install Metamask.')
     }
-  }
+  }, [])
+
+  const isMetaMaskConnected = () => accounts && accounts.length > 0
 
   const onLoadBallot = async (ballotId) => {
     creator
@@ -106,6 +101,32 @@ function Main() {
       })
   }
 
+  const onReception = async () => {
+    if (voting) {
+      voting
+        .registerVoter(web3StringToBytes32(email), Number(id), web3StringToBytes32(email.split('@')[1]))
+        .then(function () {
+          message.success('Success reception', 10)
+        })
+        .catch(async function (res) {
+          // console.log('txhash', res)
+          // console.log(await getRevertReason(0xd7cdd5a470e38de45e2bc30369d664db4acaf5d6b5c020e868efab4ed869f429))
+          message.error('An error occurd', 10)
+          // message.error(await getRevertReason(res))
+        })
+    } else {
+      message.error('Please load ballot prior to reception', 10)
+    }
+  }
+
+  const onVote = (_email) => {
+    if (voting) {
+      voting.voteForCandidate()
+    } else {
+      message.error('Please load ballot prior to vote', 10)
+    }
+  }
+
   const onChangeEmail = (e) => {
     console.log('E-mail address set', e.target.value)
     setEmail(e.target.value)
@@ -116,23 +137,18 @@ function Main() {
     setId(e.target.value)
   }
 
-  const onReception = async () => {
-    console.log('email', email)
-    console.log('domain', email.split('@')[1])
-    voting
-      .registerVoter(web3StringToBytes32(email), id, web3StringToBytes32(email.split('@')[1]))
-      .then(function () {
-        message.success('Success reception')
-      })
-      .catch(async function (res) {
-        // console.log('txhash', res)
-        // console.log(await getRevertReason(0xd7cdd5a470e38de45e2bc30369d664db4acaf5d6b5c020e868efab4ed869f429))
-        message.error('An error occurd')
-        // message.error(await getRevertReason(res))
-      })
-  }
-
-  const onVote = (_email) => console.log(_email)
+  const columns = [
+    {
+      title: 'Candidate/Choice',
+      dataIndex: 'name',
+      key: 'name'
+    },
+    {
+      title: 'Vote',
+      dataIndex: 'vote',
+      key: 'vote'
+    }
+  ]
 
   return (
     <Layout className="layout">
@@ -148,26 +164,26 @@ function Main() {
               <h2>Status</h2>
               Account: <i>{accounts}</i>
             </div>
-            <Space direction="horizontal" size="large" align="center" split={<Divider type="vertical" />}>
-              <Button type="primary" onClick={onClickInit}>
-                Connect
-              </Button>
-            </Space>
           </Space>
           <br />
           <br />
           <br />
           <div>
-            <Table
-              rowSelection={{
-                type: 'radio',
-                columnWidth: 20
-              }}
-              columns={columns}
-              dataSource={tableData}
-              size="default"
-              title={() => pollTitle}
-            />
+            {voting ? (
+              <Table
+                rowSelection={{
+                  type: 'radio',
+                  columnWidth: 20,
+                  onChange: (selectedRowKeys, selectedRows) => {
+                    console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows)
+                  }
+                }}
+                columns={columns}
+                dataSource={tableData}
+                size="default"
+                title={() => pollTitle}
+              />
+            ) : null}
           </div>
           <br />
           <br />
@@ -211,6 +227,81 @@ function Main() {
                 onSearch={onVote}
               />
             </Space>
+          </Space>
+          <br />
+          <br />
+          <br />
+          <h2>Debug Tool</h2>
+          <br />
+          <Space size="large" align="top" split={<Divider type="vertical" />}>
+            <Button
+              onClick={() => {
+                voting.usingWhiteDomain().then((res) => {
+                  console.log(res)
+                })
+              }}
+            >
+              usingWhiteDomain()
+            </Button>
+            <Search
+              // style={{ width: 300 }}
+              allowClear
+              enterButton="whiteDomainsIncludes()"
+              size="middle"
+              onSearch={(str) => {
+                voting.whiteDomainsIncludes(web3StringToBytes32(str)).then((res) => {
+                  console.log(res)
+                })
+              }}
+            />
+          </Space>
+          <br />
+          <br />
+          <br />
+          <Space size="large" align="top" split={<Divider type="vertical" />}>
+            <Button
+              onClick={() => {
+                voting.usingWhiteEmailAddress().then((res) => {
+                  console.log(res)
+                })
+              }}
+            >
+              usingWhiteEmailAddress()
+            </Button>
+            <Search
+              // style={{ width: 300 }}
+              allowClear
+              enterButton="whiteEmailAddressesIncludes()"
+              size="middle"
+              onSearch={(str) => {
+                voting.whiteEmailAddressesIncludes(web3StringToBytes32(str)).then((res) => {
+                  console.log(res)
+                })
+              }}
+            />
+          </Space>
+          <br />
+          <br />
+          <br />
+          <Space size="large" align="top" split={<Divider type="vertical" />}>
+            <Button
+              onClick={() => {
+                voting.getWhiteDomains().then((res) => {
+                  console.log(res)
+                })
+              }}
+            >
+              getWhiteDomains()
+            </Button>
+            <Button
+              onClick={() => {
+                voting.getWhiteEmailAddresses().then((res) => {
+                  console.log(res)
+                })
+              }}
+            >
+              getWhiteEmailAddresses()
+            </Button>
           </Space>
           <br />
           <br />

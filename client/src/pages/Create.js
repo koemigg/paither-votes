@@ -1,13 +1,24 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
-import { Button, Space, Divider, Input, Radio, DatePicker, TimePicker, InputNumber, Layout, Typography } from 'antd'
+import {
+  Button,
+  Space,
+  Divider,
+  Input,
+  Radio,
+  DatePicker,
+  TimePicker,
+  InputNumber,
+  Layout,
+  Typography,
+  message
+} from 'antd'
 import { Header } from './Header'
 import moment from 'moment'
 
 import { web3StringArrayToBytes32, genLimitUnixTime } from './Functions'
 
 import CreatorArtifacts from '../contracts/Creator.json'
-import VotingArtifacts from '../contracts/Voting.json'
 
 const { Content, Footer } = Layout
 const { Title } = Typography
@@ -29,10 +40,8 @@ function Main() {
   // const [limitTime, setLimitTime] = useState()
   // for develop
   const [creator, setCreator] = useState()
-  // const [voting, setVoting] = useState()
   const [accounts, setAccounts] = useState('No account connected.')
   const [ballotId, setballotId] = useState(Math.floor(Math.random() * 4294967295))
-  const [email, setEmail] = useState('hoge@ex.com')
   const [ballotType, setBallotType] = useState(0)
   const [title, setTitle] = useState('Test Poll')
   const [choices, setChoices] = useState('A, B, C, D')
@@ -43,109 +52,48 @@ function Main() {
   const [limitDate, setLimitDate] = useState(moment(new Date(2021, 12, 31, 23, 59, 59, 59)))
   const [limitTime, setLimitTime] = useState(moment(new Date(2021, 12, 31, 23, 59, 59, 59)))
 
-  const isMetaMaskConnected = () => accounts && accounts.length > 0
+  useEffect(() => {
+    if (window.ethereum) {
+      window.ethereum.on('chainChanged', () => {
+        window.location.reload()
+      })
+      window.ethereum.on('accountsChanged', () => {
+        window.location.reload()
+      })
+    }
+  })
 
-  const onClickConnect = async () => {
-    const ethereum = window.ethereum
-    const newAccounts = await ethereum.request({
-      method: 'eth_requestAccounts'
-    })
-    setAccounts(newAccounts)
-  }
-
-  const onClickGetCreatorContract = async () => {
-    try {
+  useEffect(() => {
+    if (window.ethereum) {
       if (isMetaMaskConnected()) {
-        // Get the contract instance.
+        window.ethereum
+          .request({
+            method: 'eth_requestAccounts'
+          })
+          .then((newAccounts) => {
+            setAccounts(newAccounts)
+          })
         const provider = new ethers.providers.Web3Provider(window.ethereum)
-        const nowBlockNumber = await provider.getBlockNumber()
-        provider.resetEventsBlock(nowBlockNumber + 1)
-        // const { networkId } = await provider.getNetwork();
         const deployedNetwork = CreatorArtifacts.networks[5777]
         const contractAddress = deployedNetwork.address
         const signer = provider.getSigner(0)
         const instance = new ethers.Contract(contractAddress, CreatorArtifacts.abi, signer)
-        // const instance = new ethers.Contract(Creator.address, CreatorArtifacts.abi, signer)
-        const newVotingContractEvent = 'newVotingContractEvent'
-        let filter = instance.filters[newVotingContractEvent]()
-        instance.on(filter, function (_address) {
-          fillVotingInfo(_address)
-        })
         setCreator(instance)
-        console.log('Setting up contract.')
+        console.log('Setting up Creator contract.')
       } else {
         console.log('Metamask is not connected.')
       }
-    } catch (error) {
-      console.error(error)
+    } else {
+      message.error('Please install Metamask.')
     }
-  }
+  }, [])
 
-  const fillVotingInfo = async function (_address) {
-    // TODO ボタンのローディングを解除
-    console.log('Voting contract has been deployed 🎉')
-    console.log('Address: ' + _address)
-    // window.alert(
-    //   'Ballot creation successful! Ballot ID: ' +
-    //     ballotId +
-    //     '\nPlease write the down the Ballot ID because it will be used to load your ballot allowing users to vote'
-    // )
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    const signer = provider.getSigner(0)
-    console.log('Ballot ID: ' + ballotId)
-    console.log('Signer: ' + signer)
-    const _voting = new ethers.Contract(_address, VotingArtifacts.abi, signer)
-    // setVoting(_voting)
-
-    // let choices = $('#choices').val() // 候補者名一覧
-    // let choicesArray = choices.split(/\s*,\s*/) // 候補者名(Array)
-    // let whiteListType = $('input[name=whitelist]:checked').val() // ホワイトリストの形式
-    // let whitelisted = $('#whitelisted').val() // ホワイトリストに登録するメールアドレス
-    // let whitelistedDomain = $('#whitelistedDomain').val() // ホワイトリストに登録するドメイン
-    // let whitelistedArray = whitelisted.split(/\s*,\s*/) // ホワイトリストのメールアドレス(Array)
-    // let whitelistedDomainArray = whitelistedDomain.split(/\s*,\s*/) // ホワイトリストのドメイン(Array)
-
-    _voting
-      .setCandidate(web3StringArrayToBytes32(choices.split(/\s*,\s*/)))
-      .then(function (result) {
-        console.log('Candidateの設定完了\nTX HASH: ', result)
-      })
-      .catch(function (error) {
-        throw new Error(error)
-      })
-      .then(function () {
-        _voting
-          .hashCandidates()
-          .then(function (result) {
-            console.log('Candidateのハッシュ化完了\nTX HASH: ', result)
-          })
-          .then(function () {
-            if (whitelistType === 1) {
-              _voting.setWhitelisted(web3StringArrayToBytes32(whitlistedEmail.split(/\s*,\s*/)))
-            }
-            if (whitelistType === 2) {
-              _voting.setWhiteListedDomain(web3StringArrayToBytes32(whitlistedDomain.split(/\s*,\s*/)))
-            }
-          })
-          .then(function () {
-            console.log('Registration of information for Voting is complete.')
-            genBallotId()
-          })
-          .catch(function (error) {
-            throw new Error(error)
-          })
-      })
-  }
+  const isMetaMaskConnected = () => accounts && accounts.length > 0
 
   function genBallotId() {
     const _ballotId = Math.floor(Math.random() * 4294967295)
     setballotId(_ballotId)
     return _ballotId
-  }
-
-  const onChangeEmail = (e) => {
-    console.log('E-mail address set', e.target.value)
-    setEmail(e.target.value)
   }
 
   const onChangeBallotType = (e) => {
@@ -170,7 +118,7 @@ function Main() {
 
   const onChangeWhitelistType = (e) => {
     console.log('Whitelist type checked', e.target.value)
-    setWhitelistType(e.target.value)
+    setWhitelistType(Number(e.target.value))
   }
 
   const onChangeWhitlistEmail = (e) => {
@@ -198,7 +146,38 @@ function Main() {
    * @note Testnet is plus 7 hours.
    */
   const onClickCreate = () => {
-    creator.createBallot(genLimitUnixTime(limitDate, limitTime), ballotType, limitCount, ballotId, title, whitelistType)
+    const whiteStuff = (() => {
+      if (whitelistType === 0) {
+        console.log('ホワイトリストなし')
+        return ''
+      } else if (whitelistType === 1) {
+        return whitlistedEmail
+      } else if (whitelistType === 2) {
+        return whitlistedDomain
+      } else {
+        console.log('ホワイトリストの形式が正しくありません')
+        return null
+      }
+    })()
+
+    if (whiteStuff) {
+      creator
+        .createBallot(
+          genLimitUnixTime(limitDate, limitTime),
+          ballotType,
+          limitCount,
+          ballotId,
+          title,
+          whitelistType,
+          web3StringArrayToBytes32(choices.split(/\s*,\s*/)),
+          web3StringArrayToBytes32(whiteStuff.split(/\s*,\s*/))
+        )
+        .then(() => {
+          message.success('Voting contract has been deployed 🎉', 10)
+          console.log(title, "'s Ballot ID: ", ballotId)
+          genBallotId()
+        })
+    }
   }
 
   return (
@@ -215,23 +194,12 @@ function Main() {
               <h2>Status</h2>
               Account: <i>{accounts}</i>
             </div>
-            <Space direction="horizontal" size="large" align="center" split={<Divider type="vertical" />}>
-              <Button type="primary" onClick={onClickConnect}>
-                Connect
-              </Button>
-              <Button type="primary" onClick={onClickGetCreatorContract}>
-                Get Contract
-              </Button>
-            </Space>
           </Space>
           <br />
           <br />
           <br />
           <Space direction="vertical" size="small" align="center">
             <h2>Create Ballot</h2>
-            <h3>Enter your E-mail Address</h3>
-            <Input onChange={onChangeEmail} style={{ width: 400 }} placeholder="E-mail Adderess" allowClear />
-            <br />
             <h3>Select ballot type</h3>
             <Radio.Group onChange={onChangeBallotType} value={ballotType}>
               <Space direction="vertical">
