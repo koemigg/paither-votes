@@ -53,19 +53,45 @@ contract Voting {
     /// @param _ballotId A value to access a specific Voting contract.
     /// @param _title Title
     /// @param _whiteListType Whitelist type. 0: Non-whitelist, 1: E-mail, 2: domain
+    /// @param _candidates Candisates or choices.
+    /// @param _whiteStuff Whitelisted E-mail addresses or domains. 
     /// @param _owner Administrator's address
-    constructor
-    (uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whiteListType, address _owner)
+    constructor (uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whiteListType, bytes32[] memory _candidates, bytes32[] memory _whiteStuff, address _owner)
     public {
-        // 投票用紙情報をまとめている構造体bに各パラメータを設定
         b.timeLimit = _timeLimit;
         b.ballotType = _ballotType;
         b.voteLimit = _voteLimit;
         b.ballotId = _ballotId;
         b.title = _title;
         b.whiteListType = _whiteListType;
+        for(uint i = 0; i < _candidates.length; i++) {
+            tempCandidate = _candidates[i];
+            c.candidateList.push(tempCandidate);
+        }
 
-        owner = _owner; // 管理者のアドレスを格納
+        /// @notice Hash the candidate's name. and initialize the number of votes received.
+        /// @dev The reason for the initial received value of 1: 1 == decrypted　0.
+        /// Because using a cryptographic scheme that adds up exponents. (PAILLER cipher)
+        tempVote = 1;
+        for(uint i = 0; i < c.candidateList.length; i++) {
+            tempCandidate = c.candidateList[i];
+            convertCandidate = bytes32ToString(tempCandidate);
+            c.candidateHash[tempCandidate] = keccak256(abi.encode(convertCandidate));
+            c.votesReceived[keccak256(abi.encode(convertCandidate))] = tempVote;
+        }
+
+        if (_whiteListType == 1){
+            for(uint i = 0; i < _whiteStuff.length; i++) {
+                b.whiteEmailAddresses.push(_whiteStuff[i]);
+            }
+        } else if (_whiteListType == 2){
+            for(uint i = 0; i < _whiteStuff.length; i++) {
+                b.whiteDomains.push(_whiteStuff[i]);
+            }
+        } else if (_whiteListType != 0){
+            revert('Invalid whitelist type.');
+        }
+        owner = _owner;
     }
 
 
@@ -292,6 +318,34 @@ contract Voting {
     function getAddress()public view returns (address) {
         return address(this);
     }
+
+    // DEBUG
+
+    string message;
+
+    function helloworld() public {
+        message = "Hello World!";
+    }
+
+    function setHelloworld(string memory _message) public {
+        message = _message;
+    }
+
+    function getHelloworld() public view returns (string memory) {
+        return message;
+    }
+
+    function getWhiteDomains() public view returns (bytes32[] memory){
+        return b.whiteDomains;
+    }
+
+    function getWhiteEmailAddresses() public view returns (bytes32[] memory){
+        return b.whiteEmailAddresses;
+    }
+
+    function getWhitelistType() public view returns (uint8){
+        return b.whiteListType;
+    }
 }
 
 //                         //
@@ -309,9 +363,9 @@ contract Creator {
     
     address owner;
 
-    function createBallot(uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whiteListType)
+    function createBallot(uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whiteListType, bytes32[] memory _candidates, bytes32[] memory _whiteStuff)
     public {
-        Voting newVoting = new Voting(_timeLimit, _ballotType, _voteLimit, _ballotId, _title, _whiteListType, msg.sender);
+        Voting newVoting = new Voting(_timeLimit, _ballotType, _voteLimit, _ballotId, _title, _whiteListType, _candidates, _whiteStuff,  msg.sender);
         votes[_ballotId] = address(newVoting);
         ballotIds[address(newVoting)] = _ballotId;
         emit newVotingContractEvent(address(newVoting));
