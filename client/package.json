@@ -9,8 +9,8 @@
     "eject": "react-scripts eject",
     "lint": "eslint src",
     "compile": "cd ../solidity && truffle compile",
-    "migrate": "cd ../solidity && truffle migrate && cp -i -r build/contracts ../client/src",
-    "migrate-reset": "cd ../solidity && truffle migrate --reset && cp -i -r build/contracts ../client/src"
+    "migrate": "cd ../solidity && truffle migrate && cp -r build/contracts ../client/src",
+    "migrate-reset": "cd ../solidity && truffle migrate --reset && cp -r build/contracts ../client/src"
   },
   "eslintConfig": {
     "extends": "react-app"
