@@ -23,12 +23,11 @@ import CreatorArtifacts from '../contracts/Creator.json'
 const { Content, Footer } = Layout
 const { Title } = Typography
 
-function Main() {
+const Main = () => {
   // for release
   // const [contract, setContract] = useState()
   // const [accounts, setAccounts] = useState('No account connected.')
   // const [ballotId, setballotId] = useState(Math.floor(Math.random() * 4294967295))
-  // const [email, setEmail] = useState()
   // const [ballotType, setBallotType] = useState()
   // const [title, setTitle] = useState()
   // const [choices, setChoices] = useState()
@@ -38,6 +37,7 @@ function Main() {
   // const [whitlistedDomain, setWhitlistedDomain] = useState()
   // const [limitDate, setLimitDate] = useState()
   // const [limitTime, setLimitTime] = useState()
+
   // for develop
   const [creator, setCreator] = useState()
   const [accounts, setAccounts] = useState('No account connected.')
@@ -175,7 +175,7 @@ function Main() {
         .then(() => {
           message.success('Voting contract has been deployed 🎉', 10)
           console.log(title, "'s Ballot ID: ", ballotId)
-          genBallotId()
+          setballotId(genBallotId())
         })
     }
   }

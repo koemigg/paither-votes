@@ -4,7 +4,7 @@ import { Header } from './Header'
 
 const { Content, Footer } = Layout
 
-function Main() {
+const Main = () => {
   return (
     <Layout className="layout">
       <Header title={'Seetings ⚙️'} />

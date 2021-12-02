@@ -1,8 +1,5 @@
 import 'datejs'
-// var express = require('express')
 const paillier = require('jspaillier')
-// var jsbn = require('jsbn')
-// var body = require('body-parser')
 
 const KEY_MODULES_BITS = 128
 
