@@ -203,5 +203,5 @@ client/src/old-src
 .vscode
 .prettierrc
 
-solidity/build/contracts
-client/src/contracts
+solidity/build/contracts/*
+client/src/contracts/*
