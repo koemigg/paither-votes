@@ -143,14 +143,17 @@ contract Voting {
         }
     }
 
-    // uint256[] _votes : 投票内容
-    // bytes32[] _candidates : 投票者が使用した候補者リスト
-    // bytes32 _email : 投票するユーザーのメールアドレス
+    /// @param _votes 　Updated voting details
+    /// @param _email Voter's E-mail address
+    /// @param _domain Vote's domain of E-mail address
+    /// @param _candidates Candidate List
     function voteForCandidate(uint256[] memory _votes, bytes32 _email, bytes32 _domain, bytes32[] memory _candidates) public {
         if (checkTimelimit() == false) revert('The time for voting has passed.');
         if (checkVoteattempts() == false) revert('Maximum number of votes has been reached.');
         if (usingWhiteEmailAddress() == true && whiteEmailAddressesIncludes(_email) == false) revert('Email address is not whitelistted.');
         if (usingWhiteDomain() == true && whiteDomainsIncludes(_domain) == false) revert('Domain is not whitelisted.');
+        if (v.voterID[_email] == 0) revert("BSU student/employee ID is not registered.");
+        if (v.voterAddr[_email] != msg.sender) revert("Ethereum address does not match the Ethreum address registered in the email address.");
         tempVotes = _votes;
         tempCandidates = _candidates;       // 候補者リストを一時保存
         v.attemptedVotes[msg.sender] += 1;  // このメソッドを呼び出したユーザ(投票した人)の投票回数を+1する
@@ -345,6 +348,14 @@ contract Voting {
 
     function getWhitelistType() public view returns (uint8){
         return b.whiteListType;
+    }
+
+    function getId (bytes32 _email)public view returns (uint16){
+        return v.voterID[_email];
+    }
+
+    function getEmail(uint16 _id)public view returns (bytes32){
+        return v.voterEmail[_id];
     }
 }
 
