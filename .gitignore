@@ -168,11 +168,6 @@ dist
 
 # End of https://www.toptal.com/developers/gitignore/api/node,visualstudiocode,macos
 
-# Personal Settings
-
-public/javascripts/Ethers-Test.js
-public/javascripts/StringToBytes.js
-
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
@@ -192,16 +187,10 @@ public/javascripts/StringToBytes.js
 .env.development.local
 .env.test.local
 .env.production.local
+# Personal Settings
 
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-client/src/old-src
 .idea/*
 !workspace.xml
-.vscode
-.prettierrc
 
 solidity/build/contracts/*
 client/src/contracts/*

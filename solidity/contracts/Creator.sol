@@ -15,6 +15,7 @@ contract Voting {
         uint8 whiteListType;                        // 投票に個別なEmailアドレスのホワイトリストの形式
         bytes32[] whiteEmailAddresses;              // 投票に個別なEmailアドレスのホワイトリスト
         bytes32[] whiteDomains;                     // 投票に個別なEmailアドレスのドメインのホワイトリスト
+        PublicKey publicKey;
     }
 
     // 候補者情報をまとめた構造体
@@ -31,6 +32,11 @@ contract Voting {
         mapping (bytes32 => address) voterAddr;     // Emailアドレスに対応するEthreumアドレス
         mapping (bytes32 => uint16) voterID;        // Emailアドレスに対応する学生/従業員ID番号を保存
         mapping (uint16 => bytes32) voterEmail;     // 学生/従業員ID番号に対応するEmailアドレスを保存
+    }
+
+    struct PublicKey {
+        uint256 n;
+        uint256 g;
     }
 
     Candidates c;   // 候補者情報をまとめた構造体
@@ -55,8 +61,9 @@ contract Voting {
     /// @param _whiteListType Whitelist type. 0: Non-whitelist, 1: E-mail, 2: domain
     /// @param _candidates Candisates or choices.
     /// @param _whiteStuff Whitelisted E-mail addresses or domains. 
+    /// @param _publicKey Public key for encrypting votes. _publicKey[0]: n, _publicKey[1]: g
     /// @param _owner Administrator's address
-    constructor (uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whiteListType, bytes32[] memory _candidates, bytes32[] memory _whiteStuff, address _owner)
+    constructor (uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whiteListType, bytes32[] memory _candidates, bytes32[] memory _whiteStuff, uint256[] memory _publicKey, address _owner)
     public {
         b.timeLimit = _timeLimit;
         b.ballotType = _ballotType;
@@ -91,6 +98,10 @@ contract Voting {
         } else if (_whiteListType != 0){
             revert('Invalid whitelist type.');
         }
+
+        b.publicKey.n = _publicKey[0];
+        b.publicKey.g = _publicKey[1];
+
         owner = _owner;
     }
 
@@ -322,6 +333,10 @@ contract Voting {
         return address(this);
     }
 
+    function getPublicKey() public view returns (uint256[] memory) {
+        return b.publicKey;
+    }
+
     // DEBUG
 
     string message;
@@ -374,9 +389,9 @@ contract Creator {
     
     address owner;
 
-    function createBallot(uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whiteListType, bytes32[] memory _candidates, bytes32[] memory _whiteStuff)
+    function createBallot(uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whiteListType, bytes32[] memory _candidates, bytes32[] memory _whiteStuff, uint256[] memory _publicKey)
     public {
-        Voting newVoting = new Voting(_timeLimit, _ballotType, _voteLimit, _ballotId, _title, _whiteListType, _candidates, _whiteStuff,  msg.sender);
+        Voting newVoting = new Voting(_timeLimit, _ballotType, _voteLimit, _ballotId, _title, _whiteListType, _candidates, _whiteStuff, _publicKey, msg.sender);
         votes[_ballotId] = address(newVoting);
         ballotIds[address(newVoting)] = _ballotId;
         emit newVotingContractEvent(address(newVoting));
