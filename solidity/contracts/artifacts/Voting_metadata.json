@@ -1,0 +1,604 @@
+{
+	"compiler": {
+		"version": "0.5.16+commit.9c3226ce"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "uint32",
+						"name": "_timeLimit",
+						"type": "uint32"
+					},
+					{
+						"internalType": "uint8",
+						"name": "_ballotType",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint8",
+						"name": "_voteLimit",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint32",
+						"name": "_ballotId",
+						"type": "uint32"
+					},
+					{
+						"internalType": "string",
+						"name": "_title",
+						"type": "string"
+					},
+					{
+						"internalType": "uint8",
+						"name": "_whiteListType",
+						"type": "uint8"
+					},
+					{
+						"internalType": "address",
+						"name": "_owner",
+						"type": "address"
+					}
+				],
+				"payable": false,
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "bool",
+						"name": "judge",
+						"type": "bool"
+					}
+				],
+				"name": "Bool",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "_votesReceived",
+						"type": "uint256"
+					}
+				],
+				"name": "VotesCounts",
+				"type": "event"
+			},
+			{
+				"constant": false,
+				"inputs": [
+					{
+						"internalType": "bytes32[]",
+						"name": "_domains",
+						"type": "bytes32[]"
+					}
+				],
+				"name": "addWhiteDomain",
+				"outputs": [],
+				"payable": false,
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"constant": false,
+				"inputs": [
+					{
+						"internalType": "bytes32[]",
+						"name": "_emails",
+						"type": "bytes32[]"
+					}
+				],
+				"name": "addWhiteEmailAddress",
+				"outputs": [],
+				"payable": false,
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "x",
+						"type": "bytes32"
+					}
+				],
+				"name": "bytes32ToString",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"payable": false,
+				"stateMutability": "pure",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [],
+				"name": "checkBallottype",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "_email",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "uint16",
+						"name": "_idnum",
+						"type": "uint16"
+					}
+				],
+				"name": "checkReg",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [],
+				"name": "checkTimelimit",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [],
+				"name": "checkVoteattempts",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "email",
+						"type": "bytes32"
+					}
+				],
+				"name": "checkVoter",
+				"outputs": [
+					{
+						"internalType": "uint8",
+						"name": "",
+						"type": "uint8"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"internalType": "uint64",
+						"name": "ballotID",
+						"type": "uint64"
+					}
+				],
+				"name": "checkballotID",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [],
+				"name": "getAddress",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"internalType": "uint64",
+						"name": "_ballotID",
+						"type": "uint64"
+					}
+				],
+				"name": "getCandidateList",
+				"outputs": [
+					{
+						"internalType": "bytes32[]",
+						"name": "",
+						"type": "bytes32[]"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [],
+				"name": "getTimelimit",
+				"outputs": [
+					{
+						"internalType": "uint32",
+						"name": "",
+						"type": "uint32"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [],
+				"name": "getTitle",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": false,
+				"inputs": [],
+				"name": "hashCandidates",
+				"outputs": [],
+				"payable": false,
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"constant": false,
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "_email",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "uint16",
+						"name": "_idnum",
+						"type": "uint16"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "_domain",
+						"type": "bytes32"
+					}
+				],
+				"name": "registerVoter",
+				"outputs": [],
+				"payable": false,
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"constant": false,
+				"inputs": [
+					{
+						"internalType": "bytes32[]",
+						"name": "_candidates",
+						"type": "bytes32[]"
+					}
+				],
+				"name": "setCandidate",
+				"outputs": [],
+				"payable": false,
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"constant": false,
+				"inputs": [
+					{
+						"internalType": "bytes32[]",
+						"name": "_domains",
+						"type": "bytes32[]"
+					}
+				],
+				"name": "setWhiteDomain",
+				"outputs": [],
+				"payable": false,
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"constant": false,
+				"inputs": [
+					{
+						"internalType": "bytes32[]",
+						"name": "_emails",
+						"type": "bytes32[]"
+					}
+				],
+				"name": "setWhiteEmailAddress",
+				"outputs": [],
+				"payable": false,
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "cHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "totalVotesFor",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [],
+				"name": "usingWhiteDomain",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [],
+				"name": "usingWhiteEmailAddress",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "cHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "validCandidate",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": false,
+				"inputs": [
+					{
+						"internalType": "uint256[]",
+						"name": "_votes",
+						"type": "uint256[]"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "_email",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "_domain",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32[]",
+						"name": "_candidates",
+						"type": "bytes32[]"
+					}
+				],
+				"name": "voteForCandidate",
+				"outputs": [],
+				"payable": false,
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "cHash",
+						"type": "bytes32"
+					}
+				],
+				"name": "votesFor",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "_domain",
+						"type": "bytes32"
+					}
+				],
+				"name": "whiteDomainsIncludes",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "email",
+						"type": "bytes32"
+					}
+				],
+				"name": "whiteEmailAddressesIncludes",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"methods": {
+				"constructor": {
+					"params": {
+						"_ballotId": "A value to access a specific Voting contract.",
+						"_ballotType": "The format of the vote. 0: poll, 1: election",
+						"_owner": "Administrator's address",
+						"_timeLimit": "Voting Period",
+						"_title": "Title",
+						"_voteLimit": "Maximum number of vote",
+						"_whiteListType": "Whitelist type. 0: Non-whitelist, 1: E-mail, 2: domain"
+					}
+				},
+				"hashCandidates()": {
+					"details": "The reason for the initial received value of 1: 1 == decrypted　0. Because using a cryptographic scheme that adds up exponents. (PAILLER cipher)"
+				},
+				"setWhiteEmailAddress(bytes32[])": {
+					"params": {
+						"_emails": "List of email addresses to be added to whiteEmailAddresses"
+					}
+				}
+			}
+		},
+		"userdoc": {
+			"methods": {
+				"hashCandidates()": {
+					"notice": "Hash the candidate's name. and initialize the number of votes received."
+				}
+			}
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/Creator.sol": "Voting"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/Creator.sol": {
+			"keccak256": "0x2ebd7469da3347845957cc3d109c17c21dc5717fd7c056cdb84d4ebdbe223247",
+			"urls": [
+				"bzz-raw://97582ba8d86540f74df776f46c2e075d7f2f52b63a57e7d1da8d973f83882ac6",
+				"dweb:/ipfs/QmUYQjSKm2Qw7AUJrxhYxatuxFBaEVA4npu7qLzyCWfzKZ"
+			]
+		}
+	},
+	"version": 1
+}
