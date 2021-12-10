@@ -1,20 +1,11 @@
 import React, { useState, useEffect } from 'react'
+import { useHistory } from 'react-router-dom'
 import { ethers } from 'ethers'
-import {
-  Button,
-  Space,
-  Divider,
-  Input,
-  Radio,
-  DatePicker,
-  TimePicker,
-  InputNumber,
-  Layout,
-  Typography,
-  message
-} from 'antd'
+import { Button, Space, Divider, Input, Radio, DatePicker, TimePicker, InputNumber, Layout, Typography, message } from 'antd'
 import { Header } from './Header'
+import { CreateResult } from './CreateResult'
 import moment from 'moment'
+import * as paillierBigint from 'paillier-bigint'
 
 import { web3StringArrayToBytes32, genLimitUnixTime } from './Functions'
 
@@ -51,6 +42,8 @@ const Main = () => {
   const [whitlistedDomain, setWhitlistedDomain] = useState()
   const [limitDate, setLimitDate] = useState(moment(new Date(2021, 12, 31, 23, 59, 59, 59)))
   const [limitTime, setLimitTime] = useState(moment(new Date(2021, 12, 31, 23, 59, 59, 59)))
+  const [keys, setKeys] = useState()
+  const [isCreateBallot, setIsCreateBallot] = useState(false)
 
   useEffect(() => {
     if (window.ethereum) {
@@ -88,11 +81,25 @@ const Main = () => {
     }
   }, [])
 
+  useEffect(async () => {
+    _renewKeys()
+    _renewBallotId()
+  }, [])
+
   const isMetaMaskConnected = () => accounts && accounts.length > 0
 
-  function genBallotId() {
+  const _renewKeys = async () => {
+    const { publicKey, privateKey } = await paillierBigint.generateRandomKeys(128)
+    setKeys({ publicKey: publicKey, privateKey: privateKey })
+    console.log('Setting up new keys.')
+    console.log(publicKey, privateKey)
+  }
+
+  function _renewBallotId() {
     const _ballotId = Math.floor(Math.random() * 4294967295)
     setballotId(_ballotId)
+    console.log('Setting up new Ballot ID.')
+    console.log(_ballotId)
     return _ballotId
   }
 
@@ -170,102 +177,127 @@ const Main = () => {
           title,
           whitelistType,
           web3StringArrayToBytes32(choices.split(/\s*,\s*/)),
-          web3StringArrayToBytes32(whiteStuff.split(/\s*,\s*/))
+          web3StringArrayToBytes32(whiteStuff.split(/\s*,\s*/)),
+          [keys.publicKey.n, keys.publicKey.g]
         )
         .then(() => {
-          message.success('Voting contract has been deployed 🎉', 10)
-          console.log(title, "'s Ballot ID: ", ballotId)
-          setballotId(genBallotId())
+          // message.success('Voting contract has been deployed 🎉', 10)
+          // console.log(title, "'s Ballot ID: ", ballotId)
+          setIsCreateBallot(true)
         })
     }
   }
 
+  const hoge = () => {
+    // const to = {
+    //   pathname: '/Create/Result',
+    //   state: { title: 'hoge' }
+    // }
+    // history.push(to)
+    setIsCreateBallot(true)
+  }
+  // TODO: EventをListenしてVotingのAddressをCreateResultに渡す
   return (
-    <Layout className="layout">
-      <Header title={'Create Poll ⚖️'} />
-      <Content style={{ padding: '0 50px' }}>
-        <div className="site-layout-content">
-          <Space direction="vertical" size="small" align="center" split={<Divider type="horizontal" />}>
-            <div>
-              <Title>Create poll on this page.</Title>
-              Follow the instructions below to create your ballot!
-            </div>
-            <div>
-              <h2>Status</h2>
-              Account: <i>{accounts}</i>
-            </div>
-          </Space>
-          <br />
-          <br />
-          <br />
-          <Space direction="vertical" size="small" align="center">
-            <h2>Create Ballot</h2>
-            <h3>Select ballot type</h3>
-            <Radio.Group onChange={onChangeBallotType} value={ballotType}>
-              <Space direction="vertical">
-                <Radio value={0}>
-                  <b>Poll</b> (results are displayed live)
-                </Radio>
-                <Radio value={1}>
-                  <b>Election</b> (results are displayed after end date)
-                </Radio>
+    <>
+      {!isCreateBallot ? (
+        <Layout className="layout">
+          <Header title={'Create Poll ⚖️'} />
+          <Content style={{ padding: '0 50px' }}>
+            <div className="site-layout-content">
+              <Space direction="vertical" size="small" align="center" split={<Divider type="horizontal" />}>
+                <div>
+                  <Title>Create poll on this page.</Title>
+                  Follow the instructions below to create your ballot!
+                </div>
+                <div>
+                  <h2>Status</h2>
+                  Account: <i>{accounts}</i>
+                </div>
               </Space>
-            </Radio.Group>
-            <br />
-            <h3>Enter title of your ballot</h3>
-            <Input onChange={onChangeTitle} style={{ width: 400 }} placeholder="Title" allowClear />
-            <br />
-            <h3>Seperate each candidate/choice with a comma</h3>
-            <Input onChange={onChangeChoices} style={{ width: 400 }} placeholder="Candidates/Choices" />
-            <br />
-            <h3>Number of votes allowed per person</h3>
-            <InputNumber min={1} defaultValue={3} onChange={onChangeLimitCount} />
-            <br />
-            <h3>Select whitelist type</h3>
-            <Radio.Group onChange={onChangeWhitelistType} value={whitelistType}>
-              <Space direction="vertical">
-                <Radio value={0}>
-                  <b>None</b> (all e-mails are allowed to vote)
-                </Radio>
-                <Radio value={1}>
-                  <b>Email</b> (only certain E-mails are allowed to vote)
-                </Radio>
-                {whitelistType === 1 ? (
-                  <Input
-                    onChange={onChangeWhitlistEmail}
-                    style={{ width: 400 }}
-                    placeholder="Whitelisted E-mail addresses (if applicable)"
-                  />
-                ) : null}
-                <Radio value={2}>
-                  <b>Domain</b> (only E-mails having certain domain are allowed to vote)
-                </Radio>
-                {whitelistType === 2 ? (
-                  <Input
-                    onChange={onChangeWhitlistDomain}
-                    style={{ width: 400 }}
-                    placeholder="Whitelisted domains (if applicable)"
-                  />
-                ) : null}
+              <br />
+              <br />
+              <br />
+              <Space direction="vertical" size="small" align="center">
+                <h2>Create Ballot</h2>
+                <h3>Select ballot type</h3>
+                <Radio.Group onChange={onChangeBallotType} value={ballotType}>
+                  <Space direction="vertical">
+                    <Radio value={0}>
+                      <b>Poll</b> (results are displayed live)
+                    </Radio>
+                    <Radio value={1}>
+                      <b>Election</b> (results are displayed after end date)
+                    </Radio>
+                  </Space>
+                </Radio.Group>
+                <br />
+                <h3>Enter title of your ballot</h3>
+                <Input onChange={onChangeTitle} style={{ width: 400 }} placeholder="Title" allowClear />
+                <br />
+                <h3>Seperate each candidate/choice with a comma</h3>
+                <Input onChange={onChangeChoices} style={{ width: 400 }} placeholder="Candidates/Choices" />
+                <br />
+                <h3>Number of votes allowed per person</h3>
+                <InputNumber min={1} defaultValue={3} onChange={onChangeLimitCount} />
+                <br />
+                <h3>Select whitelist type</h3>
+                <Radio.Group onChange={onChangeWhitelistType} value={whitelistType}>
+                  <Space direction="vertical">
+                    <Radio value={0}>
+                      <b>None</b> (all e-mails are allowed to vote)
+                    </Radio>
+                    <Radio value={1}>
+                      <b>Email</b> (only certain E-mails are allowed to vote)
+                    </Radio>
+                    {whitelistType === 1 ? (
+                      <Input
+                        onChange={onChangeWhitlistEmail}
+                        style={{ width: 400 }}
+                        placeholder="Whitelisted E-mail addresses (if applicable)"
+                      />
+                    ) : null}
+                    <Radio value={2}>
+                      <b>Domain</b> (only E-mails having certain domain are allowed to vote)
+                    </Radio>
+                    {whitelistType === 2 ? (
+                      <Input
+                        onChange={onChangeWhitlistDomain}
+                        style={{ width: 400 }}
+                        placeholder="Whitelisted domains (if applicable)"
+                      />
+                    ) : null}
+                  </Space>
+                </Radio.Group>
+                <br />
+                <h3>Select Poll End Date and Time</h3>
+                <Input.Group compact>
+                  <DatePicker onChange={onChangeDate} />
+                  <TimePicker defaultOpenValue={moment('00:00', 'HH:mm')} onChange={onChangeTime} />
+                </Input.Group>
+                <br />
+                <Button type="primary" onClick={onClickCreate}>
+                  Create poll
+                </Button>
+                <Button type="primary" onClick={hoge}>
+                  [Debug] Move Result
+                </Button>
               </Space>
-            </Radio.Group>
-            <br />
-            <h3>Select Poll End Date and Time</h3>
-            <Input.Group compact>
-              <DatePicker onChange={onChangeDate} />
-              <TimePicker defaultOpenValue={moment('00:00', 'HH:mm')} onChange={onChangeTime} />
-            </Input.Group>
-            <br />
-            <Button type="primary" onClick={onClickCreate}>
-              Create poll
-            </Button>
-          </Space>
-        </div>
-      </Content>
-      <Footer style={{ textAlign: 'center' }} className="footer">
-        Footer
-      </Footer>
-    </Layout>
+            </div>
+          </Content>
+          <Footer style={{ textAlign: 'center' }} className="footer">
+            Footer
+          </Footer>
+        </Layout>
+      ) : (
+        <CreateResult
+          result={'Success'}
+          ballotId={ballotId}
+          title={title}
+          publicKey={keys.publicKey}
+          privateKey={keys.privateKey}
+        />
+      )}
+    </>
   )
 }
 
