@@ -350,7 +350,7 @@ const Main = () => {
 
   return (
     <Layout className="layout">
-      <Header title={'Vote 🗳️'} />
+      <Header title={'🗳️ Vote'} />
       <Content style={{ padding: '0 50px' }}>
         <div className="site-layout-content">
           <Space direction="vertical" size="small" align="center" split={<Divider type="horizontal" />}>
@@ -407,18 +407,8 @@ const Main = () => {
             <Space direction="vertical" size="small" align="center">
               <h2>Reception</h2>
               <div>Reception to vote.</div>
-              <Input
-                onChange={onChangeReceptionEmail}
-                style={{ width: 300 }}
-                placeholder="E-mail Adderess"
-                allowClear
-              />
-              <Input
-                onChange={onChangeId}
-                style={{ width: 300 }}
-                placeholder="Your BSU student/employee ID"
-                allowClear
-              />
+              <Input onChange={onChangeReceptionEmail} style={{ width: 300 }} placeholder="E-mail Adderess" allowClear />
+              <Input onChange={onChangeId} style={{ width: 300 }} placeholder="Your BSU student/employee ID" allowClear />
               <Button onClick={onReception} type="primary">
                 Reception
               </Button>

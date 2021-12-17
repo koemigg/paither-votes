@@ -7,7 +7,7 @@ const { Content, Footer } = Layout
 const Main = () => {
   return (
     <Layout className="layout">
-      <Header title={'Seetings ⚙️'} />
+      <Header title={'⚙️ Seetings'} />
       <Content style={{ padding: '0 50px' }}>
         <div className="site-layout-content">
           <Space direction="vertical" size="small" align="center" split={<Divider type="horizontal" />}></Space>

@@ -81,9 +81,11 @@ const Main = () => {
     }
   }, [])
 
-  useEffect(async () => {
-    _renewKeys()
-    _renewBallotId()
+  useEffect(() => {
+    ;(async () => {
+      _renewKeys()
+      _renewBallotId()
+    })()
   }, [])
 
   const isMetaMaskConnected = () => accounts && accounts.length > 0
@@ -156,7 +158,7 @@ const Main = () => {
     const whiteStuff = (() => {
       if (whitelistType === 0) {
         console.log('ホワイトリストなし')
-        return ''
+        return ','
       } else if (whitelistType === 1) {
         return whitlistedEmail
       } else if (whitelistType === 2) {
@@ -201,12 +203,12 @@ const Main = () => {
     <>
       {!isCreateBallot ? (
         <Layout className="layout">
-          <Header title={'Create Poll ⚖️'} />
+          <Header title={'⚖️ Create Ballot'} />
           <Content style={{ padding: '0 50px' }}>
             <div className="site-layout-content">
               <Space direction="vertical" size="small" align="center" split={<Divider type="horizontal" />}>
                 <div>
-                  <Title>Create poll on this page.</Title>
+                  <Title>Create ballot on this page.</Title>
                   Follow the instructions below to create your ballot!
                 </div>
                 <div>
@@ -250,21 +252,13 @@ const Main = () => {
                       <b>Email</b> (only certain E-mails are allowed to vote)
                     </Radio>
                     {whitelistType === 1 ? (
-                      <Input
-                        onChange={onChangeWhitlistEmail}
-                        style={{ width: 400 }}
-                        placeholder="Whitelisted E-mail addresses (if applicable)"
-                      />
+                      <Input onChange={onChangeWhitlistEmail} style={{ width: 400 }} placeholder="Whitelisted E-mail addresses (if applicable)" />
                     ) : null}
                     <Radio value={2}>
                       <b>Domain</b> (only E-mails having certain domain are allowed to vote)
                     </Radio>
                     {whitelistType === 2 ? (
-                      <Input
-                        onChange={onChangeWhitlistDomain}
-                        style={{ width: 400 }}
-                        placeholder="Whitelisted domains (if applicable)"
-                      />
+                      <Input onChange={onChangeWhitlistDomain} style={{ width: 400 }} placeholder="Whitelisted domains (if applicable)" />
                     ) : null}
                   </Space>
                 </Radio.Group>
@@ -289,13 +283,7 @@ const Main = () => {
           </Footer>
         </Layout>
       ) : (
-        <CreateResult
-          result={'Success'}
-          ballotId={ballotId}
-          title={title}
-          publicKey={keys.publicKey}
-          privateKey={keys.privateKey}
-        />
+        <CreateResult result={'Success'} ballotId={ballotId} title={title} publicKey={keys.publicKey} privateKey={keys.privateKey} />
       )}
     </>
   )

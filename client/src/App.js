@@ -74,7 +74,7 @@ function Main() {
         </p>
         <p>
           <Button type="primary" onClick={onClickExcute}>
-            Excute
+            Excute
           </Button>
         </p>
         <div>The stored value is: {storageValue}</div>
@@ -85,8 +85,6 @@ function Main() {
 
 export default function App() {
   return (
-    <div>
       <Main />
-    </div>
   );
 }

@@ -16,6 +16,7 @@ contract Voting {
         bytes32[] whiteEmailAddresses;              // 投票に個別なEmailアドレスのホワイトリスト
         bytes32[] whiteDomains;                     // 投票に個別なEmailアドレスのドメインのホワイトリスト
         PublicKey publicKey;
+        PrivateKey privateKey;
     }
 
     // 候補者情報をまとめた構造体
@@ -37,6 +38,11 @@ contract Voting {
     struct PublicKey {
         uint256 n;
         uint256 g;
+    }
+
+    struct PrivateKey {
+        uint256 lambda;
+        uint256 mu;
     }
 
     Candidates c;   // 候補者情報をまとめた構造体
@@ -154,7 +160,7 @@ contract Voting {
         }
     }
 
-    /// @param _votes 　Updated voting details
+    /// @param _votes Updated voting details
     /// @param _email Voter's E-mail address
     /// @param _domain Vote's domain of E-mail address
     /// @param _candidates Candidate List
@@ -335,6 +341,20 @@ contract Voting {
 
     function getPublicKey() public view returns (uint256[2] memory) {
         return [b.publicKey.n, b.publicKey.g];
+    }
+
+    /// @notice Parameters for the key to decrypt the number of votes. Can only be called after the voting period is over and by the author of the vote.
+    /// @param _privateKey Private key for decrypting votes. _privateKey[0]: lambda, _privateKey[1]: mu
+    function setPrivateKey(uint256[] memory _privateKey) public onlyOwner {
+        if (checkTimelimit()) revert ('Voting is now open.');
+        b.privateKey.lambda = _privateKey[0];
+        b.privateKey.mu = _privateKey[1];
+    }
+
+    function getPrivateKey() public view returns (uint256[2] memory) {
+        if (checkTimelimit()) revert ('Voting is now open.');
+        if (b.privateKey.lambda == 0) revert ('No private key uploaded yet.');
+        return [b.privateKey.lambda, b.privateKey.mu];
     }
 
     // DEBUG
