@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "big-integer": "^1.6.51",
+    "ethereumjs-tx": "^2.1.2",
+    "ethers": "^5.5.2",
+    "paillier-bigint": "^3.2.5"
+  }
+}
