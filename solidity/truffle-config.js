@@ -43,15 +43,17 @@ module.exports = {
     // options below to some value.
     //
     development: {
-      host: "127.0.0.1", // Localhost (default: none)
+      host: '127.0.0.1', // Localhost (default: none)
       port: 7545, // Standard Ethereum port (default: none)
-      network_id: "*", // Any network (default: none)
+      network_id: '*' // Any network (default: none)
     },
     test: {
-      host: "127.0.0.1", // Localhost
+      host: '127.0.0.1', // Localhost
       port: 6545,
-      network_id: "*",
-    },
+      network_id: '*'
+      // gas: 10000000000000 //  Gas sent with each transaction (default: ~6700000). Ropsten:4700000
+      // gasPrice: 20000000000 // 20 gwei (in wei) (default: 100 gwei)
+    }
     // Another network with more advanced options...
     // advanced: {
     // port: 8777,             // Custom port
@@ -87,7 +89,7 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-      // version: "0.5.1",    // Fetch exact version from solc-bin (default: truffle's version)
+      version: '0.8.11' // Fetch exact version from solc-bin (default: truffle's version)
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
       // settings: {          // See the solidity docs for advice about optimization and evmVersion
       //  optimizer: {
@@ -96,7 +98,7 @@ module.exports = {
       //  },
       //  evmVersion: "byzantium"
       // }
-    },
+    }
   },
 
   // Truffle DB is currently disabled by default; to enable it, change enabled: false to enabled: true
@@ -106,6 +108,6 @@ module.exports = {
   // $ truffle migrate --reset --compile-all
 
   db: {
-    enabled: false,
-  },
-};
+    enabled: false
+  }
+}

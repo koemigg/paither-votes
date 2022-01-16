@@ -10,9 +10,9 @@ const ethers = require('ethers');
 const truffleAssert = require('truffle-assertions');
 const scientificToDecimal = require('scientific-to-decimal');
 
-const { JSDOM } = require('jsdom');
-const { window } = new JSDOM('');
-const $ = require('jquery')(window);
+// const { JSDOM } = require('jsdom');
+// const { window } = new JSDOM('');
+// const $ = require('jquery')(window);
 
 const Voting = artifacts.require('Voting');
 
@@ -219,6 +219,19 @@ contract('Voting', function (accounts) {
       //     assert.isTrue(false);
       //   });
       // });
+
+      it("user with E-mail address that is not on the whitelist can't pass reception", async () => {
+        voting = await Voting.new(1000000, 0, 3, ballotId, 'Title', 1, owner);
+        voting.setWhiteEmailAddress(W3STB32(email));
+        return voting
+          .registerVoter(W3STB32(email), 10, W3STB32(email.split('@')[1]), { from: voter })
+          .then(() => {
+            assert.isTrue(false);
+          })
+          .catch(() => {
+            assert.isTrue(true);
+          });
+      });
 
       it("user with E-mail address that is not on the whitelist can't vote", async () => {
         voting = await Voting.new(1000000, 0, 3, ballotId, 'Title', 1, owner);

@@ -1,0 +1,133 @@
+{
+	"compiler": {
+		"version": "0.5.16+commit.9c3226ce"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "contractAddress",
+						"type": "address"
+					}
+				],
+				"name": "newVotingContractEvent",
+				"type": "event"
+			},
+			{
+				"constant": false,
+				"inputs": [
+					{
+						"internalType": "uint32",
+						"name": "_timeLimit",
+						"type": "uint32"
+					},
+					{
+						"internalType": "uint8",
+						"name": "_ballotType",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint8",
+						"name": "_voteLimit",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint32",
+						"name": "_ballotId",
+						"type": "uint32"
+					},
+					{
+						"internalType": "string",
+						"name": "_title",
+						"type": "string"
+					},
+					{
+						"internalType": "uint8",
+						"name": "_whiteListType",
+						"type": "uint8"
+					}
+				],
+				"name": "createBallot",
+				"outputs": [],
+				"payable": false,
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"internalType": "uint32",
+						"name": "_ballotId",
+						"type": "uint32"
+					}
+				],
+				"name": "getAddress",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_voting",
+						"type": "address"
+					}
+				],
+				"name": "getBallotId",
+				"outputs": [
+					{
+						"internalType": "uint32",
+						"name": "_ballotId",
+						"type": "uint32"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"methods": {}
+		},
+		"userdoc": {
+			"methods": {}
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/Creator.sol": "Creator"
+		},
+		"evmVersion": "istanbul",
+		"libraries": {},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/Creator.sol": {
+			"keccak256": "0x2ebd7469da3347845957cc3d109c17c21dc5717fd7c056cdb84d4ebdbe223247",
+			"urls": [
+				"bzz-raw://97582ba8d86540f74df776f46c2e075d7f2f52b63a57e7d1da8d973f83882ac6",
+				"dweb:/ipfs/QmUYQjSKm2Qw7AUJrxhYxatuxFBaEVA4npu7qLzyCWfzKZ"
+			]
+		}
+	},
+	"version": 1
+}
