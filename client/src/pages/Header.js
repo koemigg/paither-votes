@@ -19,7 +19,7 @@ export const Header = (props) => {
         <Menu.Item key="/create" title="Create">
           <Link to="/Create">
             <span role="img" aria-label="Vote">
-              ⚖️&nbsp;&nbsp;Create ballot
+              ⚖️&nbsp;&nbsp;Create Ballot
             </span>
           </Link>
         </Menu.Item>
