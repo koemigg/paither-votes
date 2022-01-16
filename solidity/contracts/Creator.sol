@@ -14,9 +14,9 @@ contract Creator {
     
     address owner;
 
-    function createBallot(uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whiteListType, bytes32[] memory _candidates, bytes32[] memory _whiteStuff, uint256[] memory _publicKey)
+    function createBallot(uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whiteListType, bytes32[] memory _candidates, bytes32[] memory _whiteStuff, uint[] memory _n, uint[] memory _g)
     public {
-        Voting newVoting = new Voting(_timeLimit, _ballotType, _voteLimit, _ballotId, _title, _whiteListType, _candidates, _whiteStuff, _publicKey, msg.sender);
+        Voting newVoting = new Voting(_timeLimit, _ballotType, _voteLimit, _ballotId, _title, _whiteListType, _candidates, _whiteStuff, _n, _g, msg.sender);
         votes[_ballotId] = address(newVoting);
         ballotIds[address(newVoting)] = _ballotId;
         emit newVotingContractEvent(address(newVoting));
