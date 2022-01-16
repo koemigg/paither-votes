@@ -2,7 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="81b57469-d2ba-497c-b498-19b29a96cfb2" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/public/javascripts/VotingApp-Ethers.js" beforeDir="false" afterPath="$PROJECT_DIR$/public/javascripts/VotingApp-Ethers.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/app.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/Functions.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/pages/Create.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/Create.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/pages/Crypto.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/Crypto.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/pages/Vote.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/pages/Vote.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,6 +32,9 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="nodejs_interpreter_path" value="$USER_HOME$/.asdf/installs/nodejs/16.10.0/bin/node" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.Color Scheme Font" />
     <property name="vue.rearranger.settings.migration" value="true" />
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
@@ -36,10 +46,16 @@
       <option name="presentableId" value="Default" />
       <updated>1626421911929</updated>
       <workItem from="1626421918126" duration="96000" />
+      <workItem from="1637727264576" duration="232000" />
+      <workItem from="1637727541406" duration="1822000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>
