@@ -4,11 +4,11 @@ import { ethers } from 'ethers'
 import { Space, Descriptions, Button, Tabs, Input, Layout, Typography, message, Steps, Upload, PageHeader } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 import moment from 'moment'
-import * as paillierBigint from 'paillier-bigint'
+import * as paillier from 'paillier-bigint'
 import { Header } from './Header'
 import { VotingTable } from './VotingTable'
 
-import { AbiEncode, web3StringToBytes32, Num2FracStr } from './Functions'
+import { AbiEncode, web3StringToBytes32, Num2FracStr, SolBigIntToBigInt } from './Functions'
 
 import CreatorArtifacts from '../contracts/Creator.json'
 import VotingArtifacts from '../contracts/Voting.json'
@@ -88,6 +88,7 @@ const Main = () => {
 
   const onLoadResult = (v, e) => {
     e.preventDefault()
+    setTabledata()
     creator
       .getAddress(ballotId)
       .then(async (address) => {
@@ -99,32 +100,42 @@ const Main = () => {
           const signer = provider.getSigner(0)
           const voting_ = new ethers.Contract(address, VotingArtifacts.abi, signer)
           setVoting(voting_)
-          const pkSeed = await voting_.getPublicKey()
-          const pk = new paillierBigint.PublicKey(BigInt(pkSeed[0]), BigInt(pkSeed[1]))
-          setKeys({ ...keys, publicKey: pk })
+          const publicKey_ = await (async () => {
+            const arr = await voting_.getPublicKey()
+            return new paillier.PublicKey(
+              SolBigIntToBigInt([arr[0], arr[1], arr[2], arr[3]]),
+              SolBigIntToBigInt([arr[4], arr[5], arr[6], arr[7], arr[8], arr[9], arr[10], arr[11]])
+            )
+          })()
+          setKeys({ ...keys, publicKey: publicKey_ })
           voting_
             .getPrivateKey()
-            .then(async (data) => {
-              const sk = new paillierBigint.PrivateKey(BigInt(data[0]), BigInt(data[1]), pk)
-              setKeys({ ...keys, privateKey: sk })
+            .then(async (arr) => {
+              const privateKey_ = new paillier.PrivateKey(
+                SolBigIntToBigInt([arr[0], arr[1], arr[2], arr[3]]),
+                SolBigIntToBigInt([arr[4], arr[5], arr[6], arr[7]]),
+                publicKey_
+              )
+              setKeys({ ...keys, privateKey: privateKey_ })
               const cArr = await voting_.getCandidateList(ballotId)
               const vArrPromise = cArr.map((c) => {
-                return voting_.totalVotesFor(keccak256(AbiEncode(ethers.utils.parseBytes32String(c))))
+                return voting_.getVotes(c)
               })
               Promise.all(vArrPromise).then((vArr) => {
                 const tableData_ = cArr.map((c, i) => ({
                   key: i + 1,
                   name: ethers.utils.parseBytes32String(c),
-                  vote: Number(sk.decrypt(vArr[i].toBigInt()))
+                  vote: Number(privateKey_.decrypt(SolBigIntToBigInt(vArr[i])))
                 }))
                 setTabledata(tableData_)
               })
             })
-            .catch((error) => {
-              // if (error.data.message) {
-              message.error(error.data.message.split('revert ')[1])
-              // }
-              console.error(error)
+            .catch((res) => {
+              const errorMessage =
+                res.code == -32603 && res.data.message.split('revert ')[1] ? res.data.message.split('revert ')[1] : `Something went wrong 😕`
+              message.error(errorMessage)
+              console.error(`response:`)
+              console.dir(res, { depth: null })
             })
         }
       })
