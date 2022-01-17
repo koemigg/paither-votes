@@ -23,14 +23,13 @@ const onDownload = (e, props) => {
   }
   const blob = new Blob([JSON.stringify(data, null, '  ')], { type: 'application/json;charset=utf-8' })
   const a = document.createElement('a')
-  a.download = `${props.title}_parameters_by_bronco_votes_${formatDate(now)}.json`
+  a.download = `${props.ballotId}_${props.title}_param_bronco_votes_${formatDate(now)}.json`
   a.href = window.URL.createObjectURL(blob)
   a.click()
   a.remove()
 }
 
-const formatDate = (d) =>
-  d.getSeconds() + '_' + d.getMinutes() + '_' + d.getHours() + '_' + d.getDate() + '_' + d.getMonth() + '_' + d.getFullYear()
+const formatDate = (d) => d.getSeconds() + '_' + d.getMinutes() + '_' + d.getHours() + '_' + d.getDate() + '_' + d.getMonth() + '_' + d.getFullYear()
 
 // TODO: Display description
 const onAboutParameters = () => {
@@ -50,7 +49,7 @@ export const CreateResult = (props) => {
           status="success"
           title="Successfully Created Ballot!"
           // TODO: Display address
-          subTitle={`Ballot ID: ${props.ballotId} \nAddress: TODO`}
+          subTitle={`Ballot ID: ${props.ballotId}`}
           extra={[
             <Space size="large" align="top" direction="vertical">
               <Alert
