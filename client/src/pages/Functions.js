@@ -1,3 +1,5 @@
+/* global BigInt */
+ 
 import { ethers } from 'ethers'
 import 'datejs'
 import moment from 'moment'
