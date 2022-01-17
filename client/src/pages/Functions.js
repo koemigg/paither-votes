@@ -178,3 +178,35 @@ export function Num2FracStr(number) {
           .replace(/(?:\.0+|(\.[0-9]*[1-9])0+)$/, '$1')
     : '0'
 }
+
+function zeroPadding(NUM, LEN) {
+  return (Array(LEN).join('0') + NUM).slice(-LEN)
+}
+
+function bitlengthCount(value) {
+  return value.toString(2).length
+}
+
+export function BigIntToSolBigInt(value, bitLength = 1024, size = 256) {
+  console.assert(bitlengthCount(value) <= bitLength, `Value is up to ${bitLength}bit`)
+  console.assert(bitLength % size == 0, `bitLength is divisible by ${size}`)
+  const iterations = bitLength / size
+  const result = []
+  const value_bin_str = zeroPadding(value.toString(2), bitLength)
+  let offset = 0
+  for (let i = 0; i < iterations; i++) {
+    const item = Number(value_bin_str.slice(offset, offset + size)) == 0 ? 0n : BigInt('0b' + value_bin_str.slice(offset, offset + size))
+    result.unshift(item)
+    offset += size
+  }
+  return result
+}
+
+export function SolBigIntToBigInt(values, size = 256) {
+  let result = 0n
+  values.forEach((value, index) => {
+    const multiplier = BigInt(size) * BigInt(index)
+    result += BigInt(value) * 2n ** multiplier
+  })
+  return BigInt(result)
+}
