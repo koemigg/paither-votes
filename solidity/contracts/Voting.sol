@@ -146,7 +146,6 @@ contract Voting{
     function getVotes(bytes32 _candidate) public view returns (uint[8] memory) {
         return [candidates.votes[_candidate].x1, candidates.votes[_candidate].x256, candidates.votes[_candidate].x512, candidates.votes[_candidate].x768, candidates.votes[_candidate].x1024, candidates.votes[_candidate].x1280, candidates.votes[_candidate].x1536, candidates.votes[_candidate].x1792];
     }
-    
 
     function getPublicKey() public view returns (uint256[12] memory) {
         return [n.x1, n.x256, n.x512, n.x768, g.x1, g.x256, g.x512, g.x768, g.x1024, g.x1280, g.x1536, g.x1792];
