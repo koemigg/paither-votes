@@ -1,24 +1,21 @@
 /* global BigInt */
 import React, { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
-import { Space, Descriptions, Button, Tabs, Input, Layout, Typography, message, Steps, Upload, PageHeader } from 'antd'
+import { Space, Input, Layout, Typography, message} from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 import moment from 'moment'
 import * as paillier from 'paillier-bigint'
 import { Header } from './Header'
 import { VotingTable } from './VotingTable'
 
-import { AbiEncode, web3StringToBytes32, Num2FracStr, SolBigIntToBigInt } from './Functions'
+import { SolBigIntToBigInt } from './Functions'
 
 import CreatorArtifacts from '../contracts/Creator.json'
 import VotingArtifacts from '../contracts/Voting.json'
-import { keccak256 } from '@ethersproject/keccak256'
 
 const { Content, Footer } = Layout
-const { Title, Paragraph, Text, Link } = Typography
+const { Title, Paragraph } = Typography
 const { Search } = Input
-const { Step } = Steps
-const { Dragger } = Upload
 
 const Main = () => {
   const [creator, setCreator] = useState()
