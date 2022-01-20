@@ -1,18 +1,17 @@
 /* global BigInt */
 import React, { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
-import { Descriptions, Button, Tabs, Input, Layout, Typography, message, Steps, Upload } from 'antd'
+import { Descriptions, Button, Input, Layout, Typography, message, Steps, Upload } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 import moment from 'moment'
-import * as paillierBigint from 'paillier-bigint'
+import * as paillier from 'paillier-bigint'
 import { Header } from './Header'
 import { VotingTable } from './VotingTable'
 
-import { AbiEncode, web3StringToBytes32, Num2FracStr } from './Functions'
+import { BigIntToSolBigInt, SolBigIntToBigInt } from './Functions'
 
 import CreatorArtifacts from '../contracts/Creator.json'
 import VotingArtifacts from '../contracts/Voting.json'
-import { keccak256 } from '@ethersproject/keccak256'
 
 const scientificToDecimal = require('scientific-to-decimal')
 
@@ -23,10 +22,7 @@ const { Step } = Steps
 const { Dragger } = Upload
 
 const stepsContentStyle = {
-  // minHeight: '200px',
   marginTop: '40px',
-  // paddingLeft: '32px',
-  // paddingRight: '32px',
   textAlign: 'left'
 }
 
@@ -113,14 +109,13 @@ const Main = () => {
           console.log('DATA\n', data.title, data.ballotId, JSON.parse(data.publicKey), JSON.parse(data.privateKey))
           setTitle(data.title)
           setBallotId(data.ballotId)
-          const pk = new paillierBigint.PublicKey(BigInt(JSON.parse(data.publicKey).n), BigInt(JSON.parse(data.publicKey).g))
-          const sk = new paillierBigint.PrivateKey(BigInt(JSON.parse(data.privateKey).lambda), BigInt(JSON.parse(data.privateKey).mu), pk)
-          setKeys({ ...keys, privateKey: sk, publicKey: pk })
-          // setKeys({
-          //   ...keys,
-          //   publicKey: { n: BigInt(JSON.parse(data.publicKey).n), g: BigInt(JSON.parse(data.publicKey).g) },
-          //   privateKey: { lambda: BigInt(JSON.parse(data.privateKey).lambda), mu: BigInt(JSON.parse(data.privateKey).mu) }
-          // })
+          const _publicKey = new paillier.PublicKey(BigInt(JSON.parse(data.publicKey).n), BigInt(JSON.parse(data.publicKey).g))
+          const _privateKey = new paillier.PrivateKey(
+            BigInt(JSON.parse(data.privateKey).lambda),
+            BigInt(JSON.parse(data.privateKey).mu),
+            _publicKey
+          )
+          setKeys({ ...keys, privateKey: _privateKey, publicKey: _publicKey })
           next()
         }
         reader.readAsText(info.file.originFileObj)
@@ -165,12 +160,12 @@ const Main = () => {
             {voting}
           </Descriptions.Item> */}
           <Descriptions.Item label="Public Key" span={2}>
-            n:{Num2FracStr(keys.publicKey.n)},<br />
-            g: {Num2FracStr(keys.publicKey.g)}
+            n:{BigInt(keys.publicKey.n).toString()},<br />
+            g: {BigInt(keys.publicKey.g).toString()}
           </Descriptions.Item>
           <Descriptions.Item label="Private Key" span={2}>
-            λ: {Num2FracStr(keys.privateKey.lambda)},<br />
-            μ: {Num2FracStr(keys.privateKey.mu)}
+            λ: {BigInt(keys.privateKey.lambda).toString()},<br />
+            μ: {BigInt(keys.privateKey.mu).toString()}
           </Descriptions.Item>
         </Descriptions>
       )
@@ -230,28 +225,30 @@ const Main = () => {
   }
 
   const onCount = () => {
-    console.log('keys', keys)
-    console.log('[keys.privateKey.lambda, keys.privateKey.mu]', [keys.privateKey.lambda, keys.privateKey.mu])
     voting
-      .setPrivateKey([keys.privateKey.lambda, keys.privateKey.mu])
+      .setPrivateKey(BigIntToSolBigInt(keys.privateKey.lambda), BigIntToSolBigInt(keys.privateKey.mu))
       .then(async () => {
         console.log('Success set private key.')
         const cArr = await voting.getCandidateList(ballotId)
         const vArrPromise = cArr.map((c) => {
-          return voting.totalVotesFor(keccak256(AbiEncode(ethers.utils.parseBytes32String(c))))
+          return voting.getVotes(c)
         })
         Promise.all(vArrPromise).then((vArr) => {
           const tableData_ = cArr.map((c, i) => ({
             key: i + 1,
             name: ethers.utils.parseBytes32String(c),
-            vote: Number(keys.privateKey.decrypt(BigInt(vArr[i])))
+            vote: Number(keys.privateKey.decrypt(SolBigIntToBigInt(vArr[i])))
           }))
           setTabledata(tableData_)
         })
         setViewTable(true)
       })
-      .catch((error) => {
-        message.error(error.data.message.split('revert ')[1])
+      .catch((res) => {
+        const errorMessage =
+          res.code == -32603 && res.data.message.split('revert ')[1] ? res.data.message.split('revert ')[1] : `Something went wrong 😕`
+        message.error(errorMessage)
+        console.error(`response:`)
+        console.dir(res, { depth: null })
       })
   }
 

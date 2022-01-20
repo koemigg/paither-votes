@@ -36,13 +36,13 @@ contract Voting{
 
     struct Ballot {
         uint8 ballotType;
-        uint32 ballotId;    // 特定のVotingコントラクトにアクセスするための値
-        uint8 voteLimit;    // 投票回数の制限
-        uint32 timeLimit;   // 投票期間
-        string title;       // タイトル
-        uint8 whiteListType;                        // 投票に個別なEmailアドレスのホワイトリストの形式
-        bytes32[] whiteEmailAddresses;              // 投票に個別なEmailアドレスのホワイトリスト
-        bytes32[] whiteDomains;                     // 投票に個別なEmailアドレスのドメインのホワイトリスト
+        uint32 ballotId;    // Identifier of a specific Voting contract
+        uint8 voteLimit;    // Maximum number of votes.
+        uint32 timeLimit;   // Deadline for voting period
+        string title;       // Title.
+        uint8 whiteListType;                        // Emailアドレスのホワイトリストの形式
+        bytes32[] whiteEmailAddresses;              // Emailアドレスのホワイトリスト
+        bytes32[] whiteDomains;                     // Emailアドレスのドメインのホワイトリスト
     }
 
     struct Candidates {
@@ -146,27 +146,28 @@ contract Voting{
     function getVotes(bytes32 _candidate) public view returns (uint[8] memory) {
         return [candidates.votes[_candidate].x1, candidates.votes[_candidate].x256, candidates.votes[_candidate].x512, candidates.votes[_candidate].x768, candidates.votes[_candidate].x1024, candidates.votes[_candidate].x1280, candidates.votes[_candidate].x1536, candidates.votes[_candidate].x1792];
     }
-    
 
     function getPublicKey() public view returns (uint256[12] memory) {
         return [n.x1, n.x256, n.x512, n.x768, g.x1, g.x256, g.x512, g.x768, g.x1024, g.x1280, g.x1536, g.x1792];
     }
 
-    /// @param _votes Updated voting details
+    /// @param _votes Updated voting details [serialized]
     /// @param _email Voter's E-mail address
     /// @param _domain Vote's domain of E-mail address
-    function vote(uint256[] memory _votes, bytes32 _email, bytes32 _domain) public {
+    function vote(uint256[] memory _votes,  bytes32 _email, bytes32 _domain) public {
         if (isOpen() == false) revert('The time for voting has passed.');
-        if (reachMaxVote() == true) revert('Maximum number of votes has been reached.');
+        if (reachMaxVote() == false) revert('Maximum number of votes has been reached.');
         if (usingWhiteEmailAddress() == true && whiteEmailAddressesIncludes(_email) == false) revert('Email address is not whitelistted.');
         if (usingWhiteDomain() == true && whiteDomainsIncludes(_domain) == false) revert('Domain is not whitelisted.');
+        require(_votes.length % 8 == 0, "Length of the array divisible by 8 required");
+        require(_votes.length / 8 == candidates.candidateList.length, "Length of the array must be divisible by the number of candidates");
         if (voters.ids[msg.sender] == 0) revert("BSU student/employee ID is not registered.");
         if (voters.emails[msg.sender] != _email) revert("Ethereum address does not match the registered email address.");
 
         voters.voteCounts[msg.sender] += 1;
 
         for(uint i = 0; i < candidates.candidateList.length; i++) {
-            candidates.votes[candidates.candidateList[i]] = BigInteger2048(_votes[0], _votes[1], _votes[2], _votes[3], _votes[4], _votes[5], _votes[6], _votes[7]);
+            candidates.votes[candidates.candidateList[i]] = BigInteger2048(_votes[i * 8], _votes[i * 8 + 1], _votes[i * 8 + 2], _votes[i * 8 + 3], _votes[i * 8 + 4], _votes[i * 8 + 5], _votes[i * 8 + 6], _votes[i * 8 + 7]);
         }
     }
 
@@ -290,6 +291,14 @@ contract Voting{
 
     function getEmail()public view returns (bytes32){
         return voters.emails[msg.sender];
+    }
+
+    function getVoteTimes()public view returns(uint8){
+        return voters.voteCounts[msg.sender];
+    }
+
+    function getMaxVoteTimes()public view returns(uint8){
+        return ballot.voteLimit;
     }
 
     /// ============ Debug ============

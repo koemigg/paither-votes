@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useHistory } from 'react-router-dom'
 import { ethers } from 'ethers'
 import { Button, Space, Divider, Input, Radio, DatePicker, TimePicker, InputNumber, Layout, Typography, message } from 'antd'
 import { Header } from './Header'
@@ -7,7 +6,7 @@ import { CreateResult } from './CreateResult'
 import moment from 'moment'
 import * as paillierBigint from 'paillier-bigint'
 
-import { web3StringArrayToBytes32, genLimitUnixTime } from './Functions'
+import { web3StringArrayToBytes32, genLimitUnixTime, BigIntToSolBigInt } from './Functions'
 
 import CreatorArtifacts from '../contracts/Creator.json'
 
@@ -40,10 +39,12 @@ const Main = () => {
   const [whitelistType, setWhitelistType] = useState(0)
   const [whitlistedEmail, setWhitlistedEmail] = useState()
   const [whitlistedDomain, setWhitlistedDomain] = useState()
-  const [limitDate, setLimitDate] = useState(moment(new Date(2021, 12, 31, 23, 59, 59, 59)))
-  const [limitTime, setLimitTime] = useState(moment(new Date(2021, 12, 31, 23, 59, 59, 59)))
+  const [limitDate, setLimitDate] = useState(moment(new Date(2022, 12, 31, 23, 59, 59, 59)))
+  const [limitTime, setLimitTime] = useState(moment(new Date(2022, 12, 31, 23, 59, 59, 59)))
   const [keys, setKeys] = useState()
   const [isCreateBallot, setIsCreateBallot] = useState(false)
+
+  const KEY_BITS = 1024
 
   useEffect(() => {
     if (window.ethereum) {
@@ -91,7 +92,7 @@ const Main = () => {
   const isMetaMaskConnected = () => accounts && accounts.length > 0
 
   const _renewKeys = async () => {
-    const { publicKey, privateKey } = await paillierBigint.generateRandomKeys(128)
+    const { publicKey, privateKey } = await paillierBigint.generateRandomKeys(KEY_BITS)
     setKeys({ publicKey: publicKey, privateKey: privateKey })
     console.log('Setting up new keys.')
     console.log(publicKey, privateKey)
@@ -180,12 +181,20 @@ const Main = () => {
           whitelistType,
           web3StringArrayToBytes32(choices.split(/\s*,\s*/)),
           web3StringArrayToBytes32(whiteStuff.split(/\s*,\s*/)),
-          [keys.publicKey.n, keys.publicKey.g]
+          BigIntToSolBigInt(keys.publicKey.n),
+          BigIntToSolBigInt(keys.publicKey.g, 2048)
         )
         .then(() => {
           // message.success('Voting contract has been deployed 🎉', 10)
           // console.log(title, "'s Ballot ID: ", ballotId)
           setIsCreateBallot(true)
+        })
+        .catch((res) => {
+          const errorMessage =
+            res.code == -32603 && res.data.message.split('revert ')[1] ? res.data.message.split('revert ')[1] : 'Something went wrong 😕'
+          message.error(errorMessage)
+          console.error(`response:`)
+          console.dir(res, { depth: null })
         })
     }
   }

@@ -1,34 +1,35 @@
+/* global BigInt */
 import React, { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
 import { Button, Table, Space, Divider, Input, Layout, Typography, message } from 'antd'
 import { Header } from './Header'
 
-import { Encrypt, Decrypt, Add, getTime, GenKeys } from './Crypto'
-import { AbiEncode, web3StringToBytes32 } from './Functions'
+import { web3StringToBytes32, SolBigIntToBigInt, BigIntToSolBigInt } from './Functions'
 
 import CreatorArtifacts from '../contracts/Creator.json'
 import VotingArtifacts from '../contracts/Voting.json'
-import { keccak256 } from '@ethersproject/keccak256'
-
-const scientificToDecimal = require('scientific-to-decimal')
-const getRevertReason = require('eth-revert-reason')
+import * as paillier from 'paillier-bigint'
 
 const { Content, Footer } = Layout
 const { Title } = Typography
 const { Search } = Input
 
 const Main = () => {
-  const [keys, setKeys] = useState()
-  const [voting, setVoting] = useState(null)
+  const [keys, setKeys] = useState({
+    publicKey: { n: 0n, _n2: 0n, g: 0n },
+    privateKey: { lambda: 0n, mu: 0n, _p: 0n, _q: 0n, publicKey: { n: 0n, _n2: 0n, g: 0n } }
+  })
+  const [voting, setVoting] = useState()
   const [creator, setCreator] = useState()
   const [accounts, setAccounts] = useState('No account connected.')
-  const [pollTitle, setTitle] = useState('Here is title')
+  const [ballotTitle, setTitle] = useState()
   const [tableData, setTabledata] = useState([''])
   const [receptionEmail, setReceptionEmail] = useState()
   const [voteEmail, setVoteEmail] = useState('ho@ex.com')
   const [id, setId] = useState()
-  const [ballotId, setBallotId] = useState(1887228275)
+  const [ballotId, setBallotId] = useState()
   const [selectedRows, setSelectedRows] = useState()
+  const [selectedRowKeys, setRowKeys] = useState([])
 
   useEffect(() => {
     if (window.ethereum) {
@@ -51,7 +52,6 @@ const Main = () => {
           .then((newAccounts) => {
             setAccounts(newAccounts)
           })
-        setKeys(GenKeys())
         const provider = new ethers.providers.Web3Provider(window.ethereum)
         const deployedNetwork = CreatorArtifacts.networks[5777]
         const contractAddress = deployedNetwork.address
@@ -69,9 +69,15 @@ const Main = () => {
 
   const isMetaMaskConnected = () => accounts && accounts.length > 0
 
-  const onLoadBallot = async (_ballotId) => {
+  const errorHandler = (err) => {
+    const errorMessage = err.code == -32603 && err.data.message.split('revert ')[1] ? err.data.message.split('revert ')[1] : `Something went wrong 😕`
+    message.error(errorMessage)
+    console.error(err)
+  }
+
+  const onLoadBallot = async () => {
     creator
-      .getAddress(_ballotId)
+      .getAddress(ballotId)
       .then(async (address) => {
         if (address === 0) {
           window.alert('Invalid Ballot ID')
@@ -80,23 +86,25 @@ const Main = () => {
           // TODO: Loading
           const provider = new ethers.providers.Web3Provider(window.ethereum)
           const signer = provider.getSigner(0)
-          const voting = new ethers.Contract(address, VotingArtifacts.abi, signer)
-          setVoting(voting)
-          voting.getTitle().then((title) => {
+          const voting_ = new ethers.Contract(address, VotingArtifacts.abi, signer)
+          setVoting(voting_)
+          voting_.getTitle().then((title) => {
             setTitle(title)
           })
-          const cArr = await voting.getCandidateList(_ballotId)
-          const vArrPromise = cArr.map((c) => {
-            return voting.totalVotesFor(keccak256(AbiEncode(ethers.utils.parseBytes32String(c))))
-          })
-          Promise.all(vArrPromise).then((vArr) => {
-            const tableData_ = cArr.map((c, i) => ({
-              key: i + 1,
-              name: ethers.utils.parseBytes32String(c),
-              vote: Decrypt(scientificToDecimal(vArr[i]), keys)
-            }))
-            setTabledata(tableData_)
-          })
+          const publicKey_ = await (async () => {
+            const arr = await voting_.getPublicKey()
+            return new paillier.PublicKey(
+              SolBigIntToBigInt([arr[0], arr[1], arr[2], arr[3]]),
+              SolBigIntToBigInt([arr[4], arr[5], arr[6], arr[7], arr[8], arr[9], arr[10], arr[11]])
+            )
+          })()
+          setKeys({ ...keys, publicKey: publicKey_ })
+          const cArr = await voting_.getCandidateList(ballotId)
+          const tableData_ = cArr.map((c, i) => ({
+            key: i + 1,
+            name: ethers.utils.parseBytes32String(c)
+          }))
+          setTabledata(tableData_)
         }
       })
       .catch(function (error) {
@@ -108,19 +116,12 @@ const Main = () => {
   const onReception = async () => {
     if (voting) {
       voting
-        .registerVoter(
-          web3StringToBytes32(receptionEmail),
-          Number(id),
-          web3StringToBytes32(receptionEmail.split('@')[1])
-        )
-        .then(function () {
+        .register(web3StringToBytes32(receptionEmail), Number(id), web3StringToBytes32(receptionEmail.split('@')[1]))
+        .then(() => {
           message.success('Success reception', 10)
         })
-        .catch(async function (res) {
-          // console.log('txhash', res)
-          // console.log(await getRevertReason(0xd7cdd5a470e38de45e2bc30369d664db4acaf5d6b5c020e868efab4ed869f429))
-          message.error('An error occurd', 10)
-          // message.error(await getRevertReason(res))
+        .catch((err) => {
+          errorHandler(err)
         })
     } else {
       message.error('Please load ballot prior to reception')
@@ -130,7 +131,7 @@ const Main = () => {
   const onVote = () => {
     if (voting) {
       if (selectedRows) {
-        _onVote()
+        _OnVote()
       } else {
         message.info('Please select your choice prior to vote')
       }
@@ -139,180 +140,37 @@ const Main = () => {
     }
   }
 
-  const __onVote = () => {
-    // const selectedHashedCandidate = AbiEncode(keccak256(selectedRows[0].name))
-    const selectedHashedCandidate = keccak256(AbiEncode(selectedRows[0].name))
-    console.log('selectedHashedCandidate: ', selectedHashedCandidate)
-    const newVArrPromises = []
-    voting
-      .getCandidateList(ballotId)
-      .then((cArr) => {
-        cArr.forEach((c) => {
-          const hashedCandidate = keccak256(AbiEncode(ethers.utils.parseBytes32String(c)))
-          console.log('hashedCandidate: ', hashedCandidate)
-          const voteNum = hashedCandidate == selectedHashedCandidate ? 1 : 0
-          console.log('voteNum: ', voteNum)
-          const encryptedVoteNum = Encrypt(voteNum, keys)
-          console.log('encryptedVoteNum: ', encryptedVoteNum)
-          const newVotePromise = new Promise((resolve, reject) => {
-            voting.votesFor(hashedCandidate).then((currentVoteNum_) => {
-              console.log('currentVoteNum: ', currentVoteNum_)
-              const currentVoteNum = scientificToDecimal(currentVoteNum_)
-              console.log('scientificToDecimal(currentVoteNum_): ', currentVoteNum)
-              // if (currentVoteNum != 0) {
-              // console.log('in if statement currentVoteNum != 0')
-              // newVArr[index] = Add(encryptedInput, encryptedOutput, keys)
-              resolve(Add(currentVoteNum + encryptedVoteNum, keys))
-              // } else {
-              //   console.log('in else statement encryptedInput != 0')
-              //   newVotePromise = Encrypt(0, keys)
-              // }
-            })
+  const _OnVote = () => {
+    const selectedCandidate = web3StringToBytes32(selectedRows[0].name)
+    voting.getCandidateList(ballotId).then((candidateList) => {
+      const nowVoteGettings = candidateList.map((c) => {
+        return voting.getVotes(c)
+      })
+      Promise.all(nowVoteGettings).then((nowVotes) => {
+        const newVotesBI = nowVotes.map((v, i) => {
+          return keys.publicKey.addition(SolBigIntToBigInt(v), keys.publicKey.encrypt(selectedCandidate == candidateList[i] ? 1n : 0n))
+        })
+        console.log('newVotesBI:')
+        console.dir(newVotesBI, { depth: null })
+        let newVotes = []
+        newVotesBI.forEach((v) => {
+          console.log('newVotesBI[i]:')
+          console.dir(v, { depth: null })
+          newVotes = newVotes.concat(BigIntToSolBigInt(v, 2048))
+        })
+        console.log('newVotes:')
+        console.dir(newVotes, { depth: null })
+        voting
+          .vote(newVotes, web3StringToBytes32(voteEmail), web3StringToBytes32(voteEmail.split('@')[1]))
+          .then(() => {
+            message.info('Vote successful 🎉', 10)
+            setRowKeys([])
           })
-          newVArrPromises.push(newVotePromise)
-        })
-        // .then(() => {
-        Promise.all(newVArrPromises).then((newVArr) => {
-          console.log(`newVArr: ${newVArr}`)
-          console.log(`typeof newVArr: ${typeof newVArr}`)
-          console.log(`voteEmail: ${voteEmail}`)
-          console.log(`cArr: ${cArr}`)
-          voting
-            .voteForCandidate(
-              newVArr,
-              web3StringToBytes32(voteEmail),
-              web3StringToBytes32(voteEmail.split('@')[1]),
-              cArr
-            )
-            .then(() => {
-              message.info('Vote successful 🎉', 10)
-            })
-            .catch((res) => {
-              console.log('An error occurred during the execution of voteForcandidate(). Output: ')
-              message.error('Something went wrong 😕', 10)
-              console.error(res)
-            })
-        })
-      })
-      .catch((res) => {
-        console.log('An error occurred during the execution of getCandidateList(). Output: ')
-        message.error('Something went wrong 😕', 10)
-        console.error(res)
-      })
-  }
-
-  const input1 = 1
-  const input2 = 0
-
-  const _onVote = () => {
-    let candidateName = selectedRows[0].name
-    let email = voteEmail
-
-    let encodeName = AbiEncode(candidateName)
-    let cHash = ethers.utils.keccak256(encodeName)
-    let votesArray = []
-
-    // 投票した候補者名が今回の候補者リストに存在するかチェック
-    voting.validCandidate(cHash).then(function (v) {
-      let canValid = v.toString()
-
-      if (canValid == 'false') {
-        window.alert('Invalid Candidate!')
-        //$("#msg").html("Invalid Candidate!")
-        throw new Error()
-      }
-
-      // 投票回数の上限に達しているかをチェック
-      voting.checkVoteattempts().then(function (v) {
-        let attempCheck = v.toString()
-
-        if (attempCheck == 'false') {
-          window.alert('You have reached your voting limit for this ballot/poll!')
-          //$("#msg").html("You have reached your voting limit for this ballot/poll!")
-          throw new Error()
-        }
-
-        voting.getCandidateList(ballotId).then(function (candidateArray) {
-          for (let i = 0; i < candidateArray.length; i++) {
-            let hcand = ethers.utils.parseBytes32String(candidateArray[i])
-            console.log('hcand=' + hcand)
-            let encodeName = AbiEncode(hcand)
-
-            let hcHash = ethers.utils.keccak256(encodeName)
-
-            if (hcHash == cHash) {
-              encrypt(hcHash, input1, i, candidateArray, email, votesArray)
-            } else {
-              encrypt(hcHash, input2, i, candidateArray, email, votesArray)
-            }
-          }
-        })
+          .catch((err) => {
+            errorHandler(err)
+          })
       })
     })
-  }
-
-  function encrypt(hcHash, vnum, i, candidateArray, email, votesArray) {
-    let einput1
-    let eoutput1 = Encrypt(vnum, keys)
-    voting.votesFor(hcHash).then(function (v) {
-      let convVote = v
-      einput1 = convVote
-      console.log('einput1=' + einput1)
-      einput1 = scientificToDecimal(einput1) // 10進数表記
-
-      if (einput1 != 0) {
-        // 集計結果が0でなければ, 今回の投票文を加算する
-        add(eoutput1, einput1, i, candidateArray, email, votesArray)
-      }
-    })
-  }
-
-  function add(eoutput1, einput1, i, candidateArray, email, votesArray) {
-    let eadd1 = Add(eoutput1, einput1, keys)
-    // 加算結果をコントラクトに登録
-    verifyTimestamp(eadd1, i, candidateArray, email, votesArray)
-  }
-
-  function verifyTimestamp(eadd1, i, candidateArray, email, votesArray) {
-    voting.checkTimelimit().then(function (v) {
-      let timecheck = v.toString()
-      if (timecheck == 'false') {
-        voting.getTimelimit().then(function (v) {
-          let endtime = v.toString() // 制限時間の取得
-          //Testnet is plus 7 hours, uncomment this line if testing on testnet
-          //endtime = endtime - 21600
-          endtime = new Date(endtime * 1000)
-          // getVote) // 投票結果を表に表示
-          //window.alert("Voting period for this ballot has ended on " +endtime)
-          // 投票期限を過ぎた旨をメッセージで表示
-          // $('#msg').html('Voting period for this ballot has ended on ' + endtime)
-          window.alert('Voting period for this ballot has ended on ' + endtime)
-          throw new Error()
-        })
-      } else {
-        votesArray[i] = eadd1 // 該当場所に暗号化された投票内容を格納
-        if (i == candidateArray.length - 1) {
-          // 最後の候補者名まで処理がされていれば,以下の処理
-          // 投票者の各候補者に対する投票内容をコントラクトに登録する
-          vote(candidateArray, email, votesArray)
-        }
-      }
-    })
-  }
-
-  function vote(candidateArray, email, votesArray) {
-    voting
-      .voteForCandidate(
-        votesArray,
-        web3StringToBytes32(email),
-        web3StringToBytes32(email.split('@')[1]),
-        candidateArray
-      )
-      .then(function () {
-        // getVotes(votingAddress) // 投票結果を表に表示
-        // $('#msg').html('')
-        window.alert('Your vote has been verified!')
-      })
   }
 
   const onChangeBallotId = (e) => {
@@ -340,11 +198,6 @@ const Main = () => {
       title: 'Candidate/Choice',
       dataIndex: 'name',
       key: 'name'
-    },
-    {
-      title: 'Vote',
-      dataIndex: 'vote',
-      key: 'vote'
     }
   ]
 
@@ -382,7 +235,8 @@ const Main = () => {
                 size="default"
                 // TODO Set rowKey
                 // rowkey={}
-                title={() => pollTitle}
+                title={() => ballotTitle}
+                pagination={{ hideOnSinglePage: true }}
               />
             ) : null}
           </div>
@@ -401,7 +255,6 @@ const Main = () => {
                 size="middle"
                 onSearch={onLoadBallot}
                 onChange={onChangeBallotId}
-                defaultValue={1887228275}
               />
             </Space>
             <Space direction="vertical" size="small" align="center">
@@ -505,17 +358,17 @@ const Main = () => {
           <br />
           <br />
           <br />
+
           <Space size="large" align="top" split={<Divider type="vertical" />}>
-            <Search
-              allowClear
-              enterButton="getId()"
-              size="middle"
-              onSearch={(id) => {
-                voting.getId(web3StringToBytes32(id)).then((res) => {
-                  console.log(`BSU ID: ${res}`)
+            <Button
+              onClick={() => {
+                voting.getId().then((res) => {
+                  console.log(`ID: ${res}`)
                 })
               }}
-            />
+            >
+              getId()
+            </Button>
             <Search
               allowClear
               enterButton="getEmail()"
@@ -526,6 +379,24 @@ const Main = () => {
                 })
               }}
             />
+            <Button
+              onClick={() => {
+                voting.getVoteTimes().then((res) => {
+                  console.log(`Now, ${res} Times voted.`)
+                })
+              }}
+            >
+              getVoteTimes()
+            </Button>
+            <Button
+              onClick={() => {
+                voting.getMaxVoteTimes().then((res) => {
+                  console.log(`Max Votes: ${res}`)
+                })
+              }}
+            >
+              getMaxVoteTimes()
+            </Button>
           </Space>
           <br />
           <br />
