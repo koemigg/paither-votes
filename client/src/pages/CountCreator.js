@@ -1,18 +1,17 @@
 /* global BigInt */
 import React, { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
-import { Descriptions, Button, Tabs, Input, Layout, Typography, message, Steps, Upload } from 'antd'
+import { Descriptions, Button, Input, Layout, Typography, message, Steps, Upload } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 import moment from 'moment'
 import * as paillier from 'paillier-bigint'
 import { Header } from './Header'
 import { VotingTable } from './VotingTable'
 
-import { AbiEncode, BigIntToSolBigInt, SolBigIntToBigInt } from './Functions'
+import { BigIntToSolBigInt, SolBigIntToBigInt } from './Functions'
 
 import CreatorArtifacts from '../contracts/Creator.json'
 import VotingArtifacts from '../contracts/Voting.json'
-import { keccak256 } from '@ethersproject/keccak256'
 
 const scientificToDecimal = require('scientific-to-decimal')
 
@@ -23,10 +22,7 @@ const { Step } = Steps
 const { Dragger } = Upload
 
 const stepsContentStyle = {
-  // minHeight: '200px',
   marginTop: '40px',
-  // paddingLeft: '32px',
-  // paddingRight: '32px',
   textAlign: 'left'
 }
 
@@ -229,8 +225,6 @@ const Main = () => {
   }
 
   const onCount = () => {
-    console.log('keys', keys)
-    console.log('[keys.privateKey.lambda, keys.privateKey.mu]', [keys.privateKey.lambda, keys.privateKey.mu])
     voting
       .setPrivateKey(BigIntToSolBigInt(keys.privateKey.lambda), BigIntToSolBigInt(keys.privateKey.mu))
       .then(async () => {
