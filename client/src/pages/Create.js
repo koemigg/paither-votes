@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useHistory } from 'react-router-dom'
 import { ethers } from 'ethers'
 import { Button, Space, Divider, Input, Radio, DatePicker, TimePicker, InputNumber, Layout, Typography, message } from 'antd'
 import { Header } from './Header'
@@ -44,6 +43,8 @@ const Main = () => {
   const [limitTime, setLimitTime] = useState(moment(new Date(2022, 12, 31, 23, 59, 59, 59)))
   const [keys, setKeys] = useState()
   const [isCreateBallot, setIsCreateBallot] = useState(false)
+
+  const KEY_BITS = 1024
 
   useEffect(() => {
     if (window.ethereum) {
@@ -91,7 +92,7 @@ const Main = () => {
   const isMetaMaskConnected = () => accounts && accounts.length > 0
 
   const _renewKeys = async () => {
-    const { publicKey, privateKey } = await paillierBigint.generateRandomKeys(128)
+    const { publicKey, privateKey } = await paillierBigint.generateRandomKeys(KEY_BITS)
     setKeys({ publicKey: publicKey, privateKey: privateKey })
     console.log('Setting up new keys.')
     console.log(publicKey, privateKey)
