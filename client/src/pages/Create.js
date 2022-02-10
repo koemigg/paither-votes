@@ -32,7 +32,7 @@ const Main = () => {
   const [creator, setCreator] = useState()
   const [accounts, setAccounts] = useState('No account connected.')
   const [ballotId, setballotId] = useState(Math.floor(Math.random() * 4294967295))
-  const [ballotType, setBallotType] = useState(0)
+  const [ballotType, setBallotType] = useState(1)
   const [title, setTitle] = useState('Test Poll')
   const [choices, setChoices] = useState('A, B, C, D')
   const [limitCount, setLimitCount] = useState('3')
@@ -230,7 +230,8 @@ const Main = () => {
               <br />
               <Space direction="vertical" size="small" align="center">
                 <h2>Create Ballot</h2>
-                <h3>Select ballot type</h3>
+                {/* TODO: Refactor */}
+                {/* <h3>Select ballot type</h3>
                 <Radio.Group onChange={onChangeBallotType} value={ballotType}>
                   <Space direction="vertical">
                     <Radio value={0}>
@@ -241,7 +242,7 @@ const Main = () => {
                     </Radio>
                   </Space>
                 </Radio.Group>
-                <br />
+                <br /> */}
                 <h3>Enter title of your ballot</h3>
                 <Input onChange={onChangeTitle} style={{ width: 400 }} placeholder="Title" allowClear />
                 <br />
@@ -281,14 +282,14 @@ const Main = () => {
                 <Button type="primary" onClick={onClickCreate}>
                   Create poll
                 </Button>
-                <Button type="primary" onClick={hoge}>
+                {/* <Button type="primary" onClick={hoge}>
                   [Debug] Move Result
-                </Button>
+                </Button> */}
               </Space>
             </div>
           </Content>
           <Footer style={{ textAlign: 'center' }} className="footer">
-            Footer
+            {/* Footer */}
           </Footer>
         </Layout>
       ) : (
