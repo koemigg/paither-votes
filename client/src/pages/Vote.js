@@ -283,6 +283,7 @@ const Main = () => {
           <br />
           <br />
           <br />
+          {/*
           <h2>Debug Tool</h2>
           <br />
           <Space size="large" align="top" split={<Divider type="vertical" />}>
@@ -401,10 +402,11 @@ const Main = () => {
           <br />
           <br />
           <br />
+            */}
         </div>
       </Content>
       <Footer style={{ textAlign: 'center' }} className="footer">
-        Footer
+        {/* Footer */}
       </Footer>
     </Layout>
   )

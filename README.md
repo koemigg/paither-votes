@@ -1,71 +1,83 @@
-# BroncoVotes
-The Arrange of BroncoVotes by @hwavy
+# PaitherVote: Voting System on Ethereum's Blockchain
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Voting system running on Ethereum  Brockchain with improved [BroncoVotes](https://github.com/pmarella2/BroncoVotes).
 
-## Available Scripts
+## Description
 
-In the project directory, you can run:
+Electronic voting systems that have been developed so far have been mainly implemented in a client-server manner. This has led to a vicious cycle in which a dedicated server is required to verify the validity of the server, which inevitably increases the number of entities.
+In this study, we aimed to protect the privacy of voters by using blockchain for e-voting while maintaining the transparency, security, and cost-effectiveness of the voting system by eliminating the servers that play a centralized role from the components of the system. To the best of the author's knowledge, the only prior work whose source code is publicly available so far is BroncoVote by Dagher et al[^1]. Specifically, BroncoVote requires a dedicated server for encryption of votes, which means that the validity of the server must be trusted, the voter whitelist does not work, and the key size is too small.
+In this study, we propose an improved protocol to solve these problems as a voting system called "PaitherVotes" and implement it on Ethereum using Solidity and on the client side using JavaScript (React). The paper link is in preparation.
 
-### `yarn start`
+[^1]: Dagher, G. G., Marella, P. B., Milojkovic, M., and Mohler, J. (2018). Broncovote: Secure voting system using ethereum’s blockchain. ICISSP 2018: Proceedings of the 4th International Conference on Information Systems Security and Privacy, 96–107. doi:10.5220/0006609700960107
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Requirement
+ 
+- Node.js
+- Truffle
+- Ganache
+- MetaMask
+ 
+## Installation
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+Assuming Linux/MacOS.
 
-### `yarn test`
+**Node.js** (via [asdf](https://asdf-vm.com/))
+```bash
+brew install asdf
+echo -e '\n. $HOME/.asdf/asdf.sh' >> ~/.zshrc
+echo -e '\n. $HOME/.asdf/completions/asdf.bash' >> ~/.zshrc
+asdf plugin add nodejs
+asdf install nodejs latest
+```
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+**Truffle** (via [npm](https://npmjs.com/))
+```bash
+npm install -g truffle
+```
 
-### `yarn build`
+**Ganache**
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Install and Launch [Ganache](https://trufflesuite.com/ganache/).
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+**MetaMask**
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Install [MetaMask](https://metamask.io/) in your browser.
 
-### `yarn eject`
+## Usage
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+**Terminal 1**
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+git clone git@github.com:Harxxki/paither-votes.git
+cd paither-votes/client
+asdf install nodejs # v14.15.4
+npm i
+npm run migrate
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+Now Backend (Blockchain) will be launched, press `⌘T` or `Ctrl`+`T` to open a new tab.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+**Terminal 2**
 
-## Learn More
+```bash
+npm run start
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Now Frontend will be started.  
+Access http://localhost:3000/.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Troubleshooting
 
-### Code Splitting
+Open an issue.
+ 
+## Author
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+Haruki MORI ([@Harxxki](https://github.com/Harxxki))
 
-### Analyzing the Bundle Size
+## Acknowledgements
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+I want to thank to the members of Mishima Laboratory and Dr. Mishima for their cooperation in conducting this research. We would also like to thank Dagher, G. G., Marella, P. B., Milojkovic, M., and Mohler, J. for their prior work, and the Truffle team for providing excellent tools for Dapp development.
 
-### Making a Progressive Web App
+## License
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `yarn build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+MIT
