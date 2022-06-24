@@ -7,7 +7,7 @@ const { Content, Footer } = Layout
 const Main = () => {
   return (
     <Layout className="layout">
-      <Header title={'⚙️ Seetings'} />
+      <Header title={'⚙️ Settings'} />
       <Content style={{ padding: '0 50px' }}>
         <div className="site-layout-content">
           <Space direction="vertical" size="small" align="center" split={<Divider type="horizontal" />}></Space>
@@ -23,6 +23,6 @@ const Main = () => {
   )
 }
 
-export default function Seetings() {
+export default function Settings() {
   return <Main />
 }
