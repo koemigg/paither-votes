@@ -4,6 +4,7 @@ import { Header } from './Header'
 
 const { Content, Footer } = Layout
 
+// TODO: Remove
 const Main = () => {
   return (
     <Layout className="layout">
