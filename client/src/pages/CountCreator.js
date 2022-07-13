@@ -7,7 +7,6 @@ import moment from 'moment'
 import * as paillier from 'paillier-bigint'
 import { Header } from './Header'
 import { VotingTable } from './VotingTable'
-
 import { BigIntToSolBigInt, SolBigIntToBigInt } from './Functions'
 
 import CreatorArtifacts from '../contracts/Creator.json'
@@ -32,7 +31,6 @@ const stepsAction = {
  * Private Key Upload, Decrypt and Counting Page Component.
  * @return {React.FunctionComponent} - * Private key upload, decrypt and counting page component
  */
-
 const Main = () => {
   const [creator, setCreator] = useState()
   const [voting, setVoting] = useState()
