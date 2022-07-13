@@ -13,8 +13,8 @@ const { Title } = Typography
 const { Search } = Input
 
 /**
- * Main screen component.
- * @return {React.FunctionComponent} - React function component
+ * Main (Voting) Page component.
+ * @return {React.FunctionComponent} - Main (voting) page component
  */
 const Main = () => {
   const [keys, setKeys] = useState({

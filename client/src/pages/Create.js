@@ -14,8 +14,8 @@ const { Content } = Layout
 const { Title } = Typography
 
 /**
- * Create voting event screen component.
- * @return {React.FunctionComponent} - React function component
+ * Create Voting Event Page Component.
+ * @return {React.FunctionComponent} - Create voting event page component
  */
 const Main = () => {
   // for release
