@@ -13,8 +13,8 @@ const { Title } = Typography
 const { Search } = Input
 
 /**
- * Main Screen Component.
- * @returns {React.FunctionComponent} - React function component
+ * Main screen component.
+ * @return {React.FunctionComponent} - React function component
  */
 const Main = () => {
   const [keys, setKeys] = useState({
@@ -33,6 +33,9 @@ const Main = () => {
   const [selectedRows, setSelectedRows] = useState()
   const [selectedRowKeys, setRowKeys] = useState([])
 
+  /**
+   * Chain and account listener
+   */
   useEffect(() => {
     if (window.ethereum) {
       window.ethereum.on('chainChanged', () => {
@@ -44,6 +47,9 @@ const Main = () => {
     }
   })
 
+  /**
+   * Voting contract setup.
+   */
   useEffect(() => {
     if (window.ethereum) {
       if (isMetaMaskConnected()) {
@@ -70,9 +76,8 @@ const Main = () => {
   }, [])
 
   /**
-   * @returns {bool} - Is Metamask connected
+   * @return {bool} - Is Metamask connected
    */
-
   const isMetaMaskConnected = () => accounts && accounts.length > 0
 
   /**
