@@ -10,42 +10,51 @@ import { web3StringArrayToBytes32, genLimitUnixTime, BigIntToSolBigInt } from '.
 
 import CreatorArtifacts from '../contracts/Creator.json'
 
-const { Content, Footer } = Layout
+const { Content } = Layout
 const { Title } = Typography
 
+/**
+ * Create Voting Event Page Component.
+ * @return {React.FunctionComponent} - Create voting event page component
+ */
 const Main = () => {
   // for release
-  // const [contract, setContract] = useState()
-  // const [accounts, setAccounts] = useState('No account connected.')
-  // const [ballotId, setballotId] = useState(Math.floor(Math.random() * 4294967295))
-  // const [ballotType, setBallotType] = useState()
-  // const [title, setTitle] = useState()
-  // const [choices, setChoices] = useState()
-  // const [limitCount, setLimitCount] = useState()
-  // const [whitelistType, setWhitelistType] = useState()
-  // const [whitlistedEmail, setWhitlistedEmail] = usestate()
-  // const [whitlistedDomain, setWhitlistedDomain] = useState()
-  // const [limitDate, setLimitDate] = useState()
-  // const [limitTime, setLimitTime] = useState()
-
-  // for develop
   const [creator, setCreator] = useState()
   const [accounts, setAccounts] = useState('No account connected.')
   const [ballotId, setballotId] = useState(Math.floor(Math.random() * 4294967295))
-  const [ballotType, setBallotType] = useState(1)
-  const [title, setTitle] = useState('Test Poll')
-  const [choices, setChoices] = useState('A, B, C, D')
-  const [limitCount, setLimitCount] = useState('3')
-  const [whitelistType, setWhitelistType] = useState(0)
+  const [ballotType, setBallotType] = useState()
+  const [title, setTitle] = useState()
+  const [choices, setChoices] = useState()
+  const [limitCount, setLimitCount] = useState()
+  const [whitelistType, setWhitelistType] = useState()
   const [whitlistedEmail, setWhitlistedEmail] = useState()
   const [whitlistedDomain, setWhitlistedDomain] = useState()
-  const [limitDate, setLimitDate] = useState(moment(new Date(2022, 12, 31, 23, 59, 59, 59)))
-  const [limitTime, setLimitTime] = useState(moment(new Date(2022, 12, 31, 23, 59, 59, 59)))
+  const [limitDate, setLimitDate] = useState()
+  const [limitTime, setLimitTime] = useState()
   const [keys, setKeys] = useState()
-  const [isCreateBallot, setIsCreateBallot] = useState(false)
+  const [isCreateBallot, setIsCreateBallot] = useState()
+
+  // for develop
+  // const [creator, setCreator] = useState()
+  // const [accounts, setAccounts] = useState('No account connected.')
+  // const [ballotId, setballotId] = useState(Math.floor(Math.random() * 4294967295))
+  // const [ballotType, setBallotType] = useState(1)
+  // const [title, setTitle] = useState('Test Poll')
+  // const [choices, setChoices] = useState('A, B, C, D')
+  // const [limitCount, setLimitCount] = useState('3')
+  // const [whitelistType, setWhitelistType] = useState(0)
+  // const [whitlistedEmail, setWhitlistedEmail] = useState()
+  // const [whitlistedDomain, setWhitlistedDomain] = useState()
+  // const [limitDate, setLimitDate] = useState(moment(new Date(2022, 12, 31, 23, 59, 59, 59)))
+  // const [limitTime, setLimitTime] = useState(moment(new Date(2022, 12, 31, 23, 59, 59, 59)))
+  // const [keys, setKeys] = useState()
+  // const [isCreateBallot, setIsCreateBallot] = useState(false)
 
   const KEY_BITS = 1024
 
+  /**
+   * Chain and account listener
+   */
   useEffect(() => {
     if (window.ethereum) {
       window.ethereum.on('chainChanged', () => {
@@ -57,6 +66,9 @@ const Main = () => {
     }
   })
 
+  /**
+   * Creator contract setup.
+   */
   useEffect(() => {
     if (window.ethereum) {
       if (isMetaMaskConnected()) {
@@ -82,6 +94,9 @@ const Main = () => {
     }
   }, [])
 
+  /**
+   * Re create encryption key and Ballot ID.
+   */
   useEffect(() => {
     ;(async () => {
       _renewKeys()
@@ -89,8 +104,14 @@ const Main = () => {
     })()
   }, [])
 
+  /**
+   * @return {bool} - Is Metamask connected
+   */
   const isMetaMaskConnected = () => accounts && accounts.length > 0
 
+  /**
+   * Re create encryption key.
+   */
   const _renewKeys = async () => {
     const { publicKey, privateKey } = await paillierBigint.generateRandomKeys(KEY_BITS)
     setKeys({ publicKey: publicKey, privateKey: privateKey })
@@ -98,6 +119,9 @@ const Main = () => {
     console.log(publicKey, privateKey)
   }
 
+  /**
+   * Re create Ballot ID.
+   */
   function _renewBallotId() {
     const _ballotId = Math.floor(Math.random() * 4294967295)
     setballotId(_ballotId)
@@ -106,66 +130,93 @@ const Main = () => {
     return _ballotId
   }
 
-  const onChangeBallotType = (e) => {
-    console.log('Ballot type checked', e.target.value)
-    setBallotType(e.target.value)
-  }
-
+  /**
+   * Listener function for title.
+   * @param {React.ChangeEvent<HTMLInputElement>} e
+   */
   const onChangeTitle = (e) => {
     console.log('Title set', e.target.value)
     setTitle(e.target.value)
   }
 
+  /**
+   * Listener function for choices.
+   * @param {React.ChangeEvent<HTMLInputElement>} e
+   */
   const onChangeChoices = (e) => {
     console.log('Choices set', e.target.value)
     setChoices(e.target.value)
   }
 
+  /**
+   * Listener function for maximum voting number.
+   * @param {React.ChangeEvent<HTMLInputElement>} e
+   */
   const onChangeLimitCount = (value) => {
     console.log('maximum number set', value)
     setLimitCount(value)
   }
 
+  /**
+   * Listener function for whitelist type.
+   * @param {React.ChangeEvent<HTMLInputElement>} e
+   */
   const onChangeWhitelistType = (e) => {
     console.log('Whitelist type checked', e.target.value)
     setWhitelistType(Number(e.target.value))
   }
 
+  /**
+   * Listener function for whitelist Email.
+   * @param {React.ChangeEvent<HTMLInputElement>} e
+   */
   const onChangeWhitlistEmail = (e) => {
     console.log('Whitelisted E-mail set', e.target.value)
     setWhitlistedEmail(e.target.value)
   }
 
+  /**
+   * Listener function for whitelist domain.
+   * @param {React.ChangeEvent<HTMLInputElement>} e
+   */
   const onChangeWhitlistDomain = (e) => {
     console.log('Whitelisted domain set', e.target.value)
     setWhitlistedDomain(e.target.value)
   }
 
+  /**
+   * Listener function for limit date.
+   * @param {React.ChangeEvent<HTMLInputElement>} e
+   */
   const onChangeDate = (date, dateString) => {
     console.log('Limit date set', date, dateString)
     setLimitDate(date)
   }
 
+  /**
+   * Listener function for limit time.
+   * @param {React.ChangeEvent<HTMLInputElement>} e
+   */
   const onChangeTime = (time, timeString) => {
     console.log('Limit time set', time, timeString)
     setLimitTime(time)
   }
 
   /**
-   * Create a poll.
-   * @note Testnet is plus 7 hours.
+   * Create a voting event.
+   * @note Testnet is plus 7 hours
    */
   const onClickCreate = () => {
     const whiteStuff = (() => {
       if (whitelistType === 0) {
-        console.log('ホワイトリストなし')
+        console.log('No whitelist.')
         return ','
       } else if (whitelistType === 1) {
         return whitlistedEmail
       } else if (whitelistType === 2) {
         return whitlistedDomain
       } else {
-        console.log('ホワイトリストの形式が正しくありません')
+        console.log('Incorrect whitelist format.')
         return null
       }
     })()
@@ -199,14 +250,6 @@ const Main = () => {
     }
   }
 
-  const hoge = () => {
-    // const to = {
-    //   pathname: '/Create/Result',
-    //   state: { title: 'hoge' }
-    // }
-    // history.push(to)
-    setIsCreateBallot(true)
-  }
   // TODO: EventをListenしてVotingのAddressをCreateResultに渡す
   return (
     <>
@@ -282,15 +325,9 @@ const Main = () => {
                 <Button type="primary" onClick={onClickCreate}>
                   Create poll
                 </Button>
-                {/* <Button type="primary" onClick={hoge}>
-                  [Debug] Move Result
-                </Button> */}
               </Space>
             </div>
           </Content>
-          <Footer style={{ textAlign: 'center' }} className="footer">
-            {/* Footer */}
-          </Footer>
         </Layout>
       ) : (
         <CreateResult result={'Success'} ballotId={ballotId} title={title} publicKey={keys.publicKey} privateKey={keys.privateKey} />

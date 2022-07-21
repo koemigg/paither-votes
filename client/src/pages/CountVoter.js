@@ -17,6 +17,10 @@ const { Content, Footer } = Layout
 const { Title, Paragraph } = Typography
 const { Search } = Input
 
+/**
+ * Check The Number of Votes Received Page Component.
+ * @return {React.FunctionComponent} - * Check the number of votes received page component
+ */
 const Main = () => {
   const [creator, setCreator] = useState()
   const [voting, setVoting] = useState()
@@ -39,6 +43,9 @@ const Main = () => {
   const [current, setCurrent] = useState(0)
   const [tableData, setTabledata] = useState()
 
+  /**
+   * Chain and account listener
+   */
   useEffect(() => {
     if (window.ethereum) {
       window.ethereum.on('chainChanged', () => {
@@ -50,6 +57,9 @@ const Main = () => {
     }
   })
 
+  /**
+   * Creator contract setup.
+   */
   useEffect(() => {
     if (window.ethereum) {
       if (isMetaMaskConnected()) {
@@ -75,14 +85,26 @@ const Main = () => {
     }
   }, [])
 
+  /**
+   * @return {bool} - Is Metamask connected
+   */
   const isMetaMaskConnected = () => accounts && accounts.length > 0
 
+  /**
+   * Listener function for Ballot ID.
+   * @param {React.ChangeEvent<HTMLInputElement>} e
+   */
   const onChangeBallotId = (e) => {
     e.preventDefault()
     console.log('Ballot ID set', e.target.value)
     setBallotId(e.target.value)
   }
 
+  /**
+   * Loading result.
+   * @param {string} v
+   * @param {React.ChangeEvent<HTMLInputElement>} e
+   */
   const onLoadResult = (v, e) => {
     e.preventDefault()
     setTabledata()

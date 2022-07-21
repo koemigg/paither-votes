@@ -1,6 +1,10 @@
 import React from 'react'
-import { Button, Table, Space, Divider, Input, Layout, Typography, message } from 'antd'
+import { Table } from 'antd'
 
+/**
+ * Voting Event Table Component.
+ * @return {React.FunctionComponent} - Voting event table component
+ */
 export const VotingTable = (props) => {
   return (
     <div>

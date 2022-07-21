@@ -3,9 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
 import { Button, Table, Space, Divider, Input, Layout, Typography, message } from 'antd'
 import { Header } from './Header'
-
 import { web3StringToBytes32, SolBigIntToBigInt, BigIntToSolBigInt } from './Functions'
-
 import CreatorArtifacts from '../contracts/Creator.json'
 import VotingArtifacts from '../contracts/Voting.json'
 import * as paillier from 'paillier-bigint'
@@ -14,6 +12,10 @@ const { Content, Footer } = Layout
 const { Title } = Typography
 const { Search } = Input
 
+/**
+ * Main (Voting) Page component.
+ * @return {React.FunctionComponent} - Main (voting) page component
+ */
 const Main = () => {
   const [keys, setKeys] = useState({
     publicKey: { n: 0n, _n2: 0n, g: 0n },
@@ -31,6 +33,9 @@ const Main = () => {
   const [selectedRows, setSelectedRows] = useState()
   const [selectedRowKeys, setRowKeys] = useState([])
 
+  /**
+   * Chain and account listener
+   */
   useEffect(() => {
     if (window.ethereum) {
       window.ethereum.on('chainChanged', () => {
@@ -42,6 +47,9 @@ const Main = () => {
     }
   })
 
+  /**
+   * Voting contract setup.
+   */
   useEffect(() => {
     if (window.ethereum) {
       if (isMetaMaskConnected()) {
@@ -67,14 +75,23 @@ const Main = () => {
     }
   }, [])
 
+  /**
+   * @return {bool} - Is Metamask connected
+   */
   const isMetaMaskConnected = () => accounts && accounts.length > 0
 
+  /**
+   * @param {Error} err - Error oject
+   */
   const errorHandler = (err) => {
     const errorMessage = err.code == -32603 && err.data.message.split('revert ')[1] ? err.data.message.split('revert ')[1] : `Something went wrong 😕`
     message.error(errorMessage)
     console.error(err)
   }
 
+  /**
+   * Landing Voting Event.
+   */
   const onLoadBallot = async () => {
     creator
       .getAddress(ballotId)
@@ -113,6 +130,9 @@ const Main = () => {
       })
   }
 
+  /**
+   * Verify eligibility to vote and link your email to your ID and Ethereum address.
+   */
   const onReception = async () => {
     if (voting) {
       voting
@@ -128,6 +148,9 @@ const Main = () => {
     }
   }
 
+  /**
+   * Cast a voting (interface function).
+   */
   const onVote = () => {
     if (voting) {
       if (selectedRows) {
@@ -140,6 +163,9 @@ const Main = () => {
     }
   }
 
+  /**
+   * Cast a voting. Basically, it is executed only from OnVote().
+   */
   const _OnVote = () => {
     const selectedCandidate = web3StringToBytes32(selectedRows[0].name)
     voting.getCandidateList(ballotId).then((candidateList) => {
@@ -173,26 +199,48 @@ const Main = () => {
     })
   }
 
+  /**
+   * Listener function for Ballot ID.
+   * @param {React.ChangeEvent<HTMLInputElement>} e
+   */
   const onChangeBallotId = (e) => {
     console.log('Ballot ID set', e.target.value)
     setBallotId(e.target.value)
   }
 
+  /**
+   * Listener function for Email (for Reception).
+   * @param {React.ChangeEvent<HTMLInputElement>} e
+   */
   const onChangeReceptionEmail = (e) => {
     console.log('E-mail address set', e.target.value)
     setReceptionEmail(e.target.value)
   }
 
+  /**
+   * Listener function for ID.
+   * @param {React.ChangeEvent<HTMLInputElement>} e
+   */
   const onChangeId = (e) => {
     console.log('ID set', e.target.value)
     setId(e.target.value)
   }
 
+  /**
+   * Listener function for Email (for Voteing).
+   * @param {React.ChangeEvent<HTMLInputElement>} e
+   */
   const onChangeVoteEmail = (e) => {
     console.log('E-mail address set', e.target.value)
     setVoteEmail(e.target.value)
   }
 
+  /**
+   * Voting table column information.
+   * @property {string} title - Title of this column.
+   * @property {string} dataIndex - Display field of the data record.
+   * @property {string} key - Unique key of this column.
+   */
   const columns = [
     {
       title: 'Candidate/Choice',

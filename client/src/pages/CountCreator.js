@@ -1,23 +1,19 @@
 /* global BigInt */
 import React, { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
-import { Descriptions, Button, Input, Layout, Typography, message, Steps, Upload } from 'antd'
+import { Descriptions, Button, Layout, Typography, message, Steps, Upload } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 import moment from 'moment'
 import * as paillier from 'paillier-bigint'
 import { Header } from './Header'
 import { VotingTable } from './VotingTable'
-
 import { BigIntToSolBigInt, SolBigIntToBigInt } from './Functions'
 
 import CreatorArtifacts from '../contracts/Creator.json'
 import VotingArtifacts from '../contracts/Voting.json'
 
-const scientificToDecimal = require('scientific-to-decimal')
-
 const { Content, Footer } = Layout
-const { Title, Paragraph, Text, Link } = Typography
-const { Search } = Input
+const { Title, Paragraph } = Typography
 const { Step } = Steps
 const { Dragger } = Upload
 
@@ -31,6 +27,10 @@ const stepsAction = {
   textAlign: 'left'
 }
 
+/**
+ * Private Key Upload, Decrypt and Counting Page Component.
+ * @return {React.FunctionComponent} - * Private key upload, decrypt and counting page component
+ */
 const Main = () => {
   const [creator, setCreator] = useState()
   const [voting, setVoting] = useState()
@@ -53,6 +53,9 @@ const Main = () => {
   const [current, setCurrent] = useState(0)
   const [tableData, setTabledata] = useState()
 
+  /**
+   * Chain and account listener
+   */
   useEffect(() => {
     if (window.ethereum) {
       window.ethereum.on('chainChanged', () => {
@@ -64,6 +67,9 @@ const Main = () => {
     }
   })
 
+  /**
+   * Creator contract setup.
+   */
   useEffect(() => {
     if (window.ethereum) {
       if (isMetaMaskConnected()) {
@@ -89,8 +95,14 @@ const Main = () => {
     }
   }, [])
 
+  /**
+   * @return {bool} - Is Metamask connected
+   */
   const isMetaMaskConnected = () => accounts && accounts.length > 0
 
+  /**
+   * An object that stores the contents of the JSON file with information about the event in the ballot, and the Props given to Dragger.
+   */
   const parametersFileProps = {
     name: 'parametersFile',
     multiple: false,
@@ -110,11 +122,7 @@ const Main = () => {
           setTitle(data.title)
           setBallotId(data.ballotId)
           const _publicKey = new paillier.PublicKey(BigInt(JSON.parse(data.publicKey).n), BigInt(JSON.parse(data.publicKey).g))
-          const _privateKey = new paillier.PrivateKey(
-            BigInt(JSON.parse(data.privateKey).lambda),
-            BigInt(JSON.parse(data.privateKey).mu),
-            _publicKey
-          )
+          const _privateKey = new paillier.PrivateKey(BigInt(JSON.parse(data.privateKey).lambda), BigInt(JSON.parse(data.privateKey).mu), _publicKey)
           setKeys({ ...keys, privateKey: _privateKey, publicKey: _publicKey })
           next()
         }
@@ -128,6 +136,13 @@ const Main = () => {
     }
   }
 
+  /**
+   * Steps information in the upload step bar.
+   * @type {Array<{title: string, subtitle: string, content: JSX.Element}>}
+   * @property {string} title - Title of this step.
+   * @property {string} subtitle - Subtitle of this step.
+   * @property {string} content - Content of this step.
+   */
   const steps = [
     {
       title: 'Uploading',
@@ -198,10 +213,16 @@ const Main = () => {
     }
   ]
 
+  /**
+   * Check file validity (interface function).
+   */
   const onValidate = () => {
     isValidFile()
   }
 
+  /**
+   * Check file validity.
+   */
   const isValidFile = () => {
     creator
       .getAddress(ballotId)
@@ -224,6 +245,9 @@ const Main = () => {
       })
   }
 
+  /**
+   * Decrypt and tally the number of votes received.
+   */
   const onCount = () => {
     voting
       .setPrivateKey(BigIntToSolBigInt(keys.privateKey.lambda), BigIntToSolBigInt(keys.privateKey.mu))
@@ -252,10 +276,16 @@ const Main = () => {
       })
   }
 
+  /**
+   * Next Steps.
+   */
   const next = () => {
     setCurrent(current + 1)
   }
 
+  /**
+   * Back to previous step.
+   */
   const prev = () => {
     setCurrent(current - 1)
   }

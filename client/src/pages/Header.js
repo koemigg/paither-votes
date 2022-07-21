@@ -5,6 +5,10 @@ import { Link } from 'react-router-dom'
 
 const { SubMenu } = Menu
 
+/**
+ * Header Component.
+ * @return {React.FunctionComponent} - Header component
+ */
 export const Header = (props) => {
   return (
     <div>
