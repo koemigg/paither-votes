@@ -3,6 +3,8 @@ pragma solidity ^0.8.0;
 
 import "../node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol";
 
+/// @title Voting
+/// @notice It functions as a virtual ballot and defines the contents of the vote. Voter identification, including the number of voting attempts and voting time limit, is also performed by this contract.
 contract Voting{
 
     /// ============ Libraries ============
@@ -36,12 +38,12 @@ contract Voting{
     struct Ballot {
         uint8 ballotType;
         uint32 ballotId;    // Identifier of a specific Voting contract
-        uint8 voteLimit;    // Maximum number of votes.
+        uint8 voteLimit;    // Maximum number of votes
         uint32 timeLimit;   // Deadline for voting period
-        string title;       // Title.
-        uint8 whiteListType;                        // Emailアドレスのホワイトリストの形式
-        bytes32[] whiteEmailAddresses;              // Emailアドレスのホワイトリスト
-        bytes32[] whiteDomains;                     // Emailアドレスのドメインのホワイトリスト
+        string title;       // Title
+        uint8 whiteListType;                        // Email address whitelist type
+        bytes32[] whiteEmailAddresses;              // Email address whitelist
+        bytes32[] whiteDomains;                     // Email address domain whitelist
     }
 
     struct Candidates {
@@ -78,8 +80,8 @@ contract Voting{
 
     /// ============ Main Functions ============
 
-    /// @param _timeLimit Voting Period
-    /// @param _ballotType The format of the vote. 0: poll, 1: election
+    /// @notice Create a new ballot
+    /// @param _timeLimit Voting Period (Unix Time)
     /// @param _voteLimit Maximum number of vote
     /// @param _ballotId A value to access a specific Voting contract.
     /// @param _title Title
@@ -89,6 +91,7 @@ contract Voting{
     /// @param _n n of Public key for encrypting votes.
     /// @param _g g of Public key for encrypting votes.
     /// @param _owner Administrator's address
+    /// @dev initialize the ballot with all data
     constructor (uint32 _timeLimit, uint8 _ballotType, uint8 _voteLimit, uint32 _ballotId, string memory _title, uint8 _whiteListType, bytes32[] memory _candidates, bytes32[] memory _whiteStuff, uint[] memory _n, uint[] memory _g, address _owner) {
         ballot.timeLimit = _timeLimit;
         ballot.ballotType = _ballotType;
@@ -129,6 +132,10 @@ contract Voting{
         _;
     }
 
+    /// @notice Verify voter's eligibility and link user's email to his ID and Ethereum address.
+    /// @param _email E-Mail address
+    /// @param _id ID
+    /// @param _domain E-Mail address domain
     function register(bytes32 _email, uint16 _id, bytes32 _domain) public {
         if (usingWhiteEmailAddress() == true && whiteEmailAddressesIncludes(_email) == false) revert('Email address is not whitelisted.');
         if (usingWhiteDomain() == true && whiteDomainsIncludes(_domain) == false) revert('Domain is not whitlisted.');
@@ -136,20 +143,28 @@ contract Voting{
         voters.emails[msg.sender] = _email;
     }
 
+    /// @notice Candidates / options getter.
     /// @param _ballotId Ballot ID.
+    /// @return Candidates / option
     function getCandidateList(uint64 _ballotId) public view returns (bytes32[] memory) {
         if (validBallotId(_ballotId) == false) revert('BallotID does not match');
         return candidates.candidateList;
     }
 
+    /// @notice Number of (encrypted) votes getter
+    /// @param _candidate Candidate / option
+    /// @return Number of (encrypted) votes
     function getVotes(bytes32 _candidate) public view returns (uint[8] memory) {
         return [candidates.votes[_candidate].x1, candidates.votes[_candidate].x256, candidates.votes[_candidate].x512, candidates.votes[_candidate].x768, candidates.votes[_candidate].x1024, candidates.votes[_candidate].x1280, candidates.votes[_candidate].x1536, candidates.votes[_candidate].x1792];
     }
 
+    /// @notice Public key getter
+    /// @return Public key
     function getPublicKey() public view returns (uint256[12] memory) {
         return [n.x1, n.x256, n.x512, n.x768, g.x1, g.x256, g.x512, g.x768, g.x1024, g.x1280, g.x1536, g.x1792];
     }
 
+    /// @notice cast a vote
     /// @param _votes Updated voting details [serialized]
     /// @param _email Voter's E-mail address
     /// @param _domain Vote's domain of E-mail address
@@ -182,9 +197,10 @@ contract Voting{
     }
     */
 
-    /// @notice Parameters for the key to decrypt the number of votes. Can only be called after the voting period is over and by the author of the vote.
-    /// @param _lambda lambda of private key for decrypting votes. lambda[0]: reminder of value, lambda[1]: reminder of quotient, lambda[2]: quotient of quotient
-    /// @param _mu mu of private key for decrypting votes. mu[0]: reminder of value, mu[1]: reminder of quotient, mu[2]: quotient of quotient
+    /// @notice Parameters for the key to decrypt the number of votes setter.
+    /// @param _lambda lambda of private key for decrypting votes. [serialized]
+    /// @param _mu mu of private key for decrypting votes. [serialized]
+    /// @dev Can only be called after the voting period is over and by the creator of the vote.
     function setPrivateKey(uint256[] memory _lambda, uint256[] memory _mu) public onlyOwner {
         if (isOpen()) revert ('Voting is now open.'); 
         lambda = BigInteger1024(_lambda[0], _lambda[1], _lambda[2], _lambda[3]);
@@ -193,6 +209,9 @@ contract Voting{
         emit newBigInteger1024('set mu', _mu[0], _mu[1], _mu[2], _mu[3]);
     }
 
+    /// @notice Private key to decrypt the number of votes getter.
+    /// @return [lambda.x1, lambda.x256, lambda.x512, lambda.x768, mu.x1, mu.x256, mu.x512, mu.x768] lambda and mu of private key for decrypting votes. [serialized]
+    /// @dev Can only be called after the voting period is over.
     function getPrivateKey() public view returns (uint256[8] memory) {
         if (isOpen()) revert ('Voting is now open.');
         if (lambda.x1 == 0 && lambda.x256 == 0 && lambda.x512 == 0 && lambda.x768 == 0) revert ('No private key uploaded yet.');
@@ -201,47 +220,61 @@ contract Voting{
 
     /// ============ Helper Functions ============
 
-    /// @param _emails List of email addresses to be added to whiteEmailAddresses
+    /// @notice Set / add whitelisted E-Mail addresses.
+    /// @param _emails List of E-Mail addresses to be added to whiteEmailAddresses.
     function addWhiteEmailAddresses(bytes32[] memory _emails) public onlyOwner {
         for(uint i = 0; i < _emails.length; i++) {
             ballot.whiteEmailAddresses.push(_emails[i]);
         }
     }
 
+    /// @notice Set / add whitelisted domain of E-Mail addresses.
+    /// @param _domains List of domain of E-Mail addresses to be added to whiteEmailAddresses.
     function addWhiteDomains(bytes32[] memory _domains) public onlyOwner {
         for(uint i = 0; i < _domains.length; i++) {
             ballot.whiteDomains.push(_domains[i]);
         }
     }
 
+    /// @notice Check for a valid Ballot ID.
+    /// @param _ballotId Ballot ID
     function validBallotId(uint64 ballotId) public view returns (bool) {
         if (ballotId == ballot.ballotId) return true;
         else return false;
     }
 
-    // 設定したタイムリミットに超えているかをチェックする : 現在のブロックに記録されているタイムスタンプで判断(block.timestamp 単位:seconds) https://zoom-blc.com/solidity-time-logic
-    // タイムリミットを超えていた場合: false
-    // タイムリミットを超えていない場合: true
+    /// @notice Check if the set time limit is exceeded.
+    /// @return true (yes) or false (no).
+    /// @dev Judged by the timestamp recorded in the current block (block.timestamp unit:seconds) https://zoom-blc.com/solidity-time-logic
+    /// If time limit is exceeded: false else true
     function isOpen() public view returns (bool) {
         if (block.timestamp >= ballot.timeLimit) return false;
         else return true;
     }
 
+    /// @notice Check for a reach max vote number.
+    /// @return true (yes) or false (no).
     function reachMaxVote() public view returns (bool) {
         if (voters.voteCounts[msg.sender] == ballot.voteLimit) return false;
         else return true;
     }
 
+    /// @notice Check for using white E-mail address.
+    /// @return true (yes) or false (no).
     function usingWhiteEmailAddress() public view returns (bool) {
         if (ballot.whiteListType == 1) return true;
         else return false;
     }
 
+    /// @notice Check for using white domain of E-mail address.
+    /// @return true (yes) or false (no).
     function usingWhiteDomain() public view returns (bool) {
         if (ballot.whiteListType == 2) return true;
         else return false;
     }
 
+    /// @notice Whether the E-mail address is included in the whitelist or not.
+    /// @return true (yes) or false (no).
     function whiteEmailAddressesIncludes(bytes32 _email) public view returns (bool) {
         for(uint j = 0; j < ballot.whiteEmailAddresses.length; j++) {
             if (ballot.whiteEmailAddresses[j] == _email) {
@@ -251,6 +284,8 @@ contract Voting{
         return false;
     }
 
+    /// @notice Whether the domains of E-mail address is included in the whitelist or not.
+    /// @return true (yes) or false (no).
     function whiteDomainsIncludes(bytes32 _domain) public view returns (bool) {
         for(uint i = 0; i < ballot.whiteDomains.length; i++) {
             if (ballot.whiteDomains[i] == _domain) {
@@ -260,42 +295,62 @@ contract Voting{
         return false;
     }
 
+    /// @notice Time limit getter.
+    /// @return Time limit
     function getTimelimit() public view returns (uint32) {
         return ballot.timeLimit;
     }
 
+    /// @notice Title getter.
+    /// @return Title
     function getTitle() public view returns (string memory) {
         return ballot.title;
     }
 
+    /// @notice This ethereum address getter.
+    /// @return Ethereum address
     function getAddress()public view returns (address) {
         return address(this);
     }
 
+    /// @notice Whitelisted domain of E-mail address getter.
+    /// @return Whitelisted domain of E-mail address
         function getWhiteDomains() public view returns (bytes32[] memory){
         return ballot.whiteDomains;
     }
 
+    /// @notice Whitelisted E-mail address getter.
+    /// @return Whitelisted E-mail address
     function getWhiteEmailAddresses() public view returns (bytes32[] memory){
         return ballot.whiteEmailAddresses;
     }
 
+    /// @notice Whitelist type getter.
+    /// @return Whitelist type
     function getWhitelistType() public view returns (uint8){
         return ballot.whiteListType;
     }
 
+    /// @notice Voter's ID getter.
+    /// @return Voter's ID
     function getId()public view returns (uint16){
         return voters.ids[msg.sender];
     }
 
+    /// @notice Voter's E-mail address getter.
+    /// @return Voter's E-mail address
     function getEmail()public view returns (bytes32){
         return voters.emails[msg.sender];
     }
 
+    /// @notice Voting count getter.
+    /// @return Voting count
     function getVoteTimes()public view returns(uint8){
         return voters.voteCounts[msg.sender];
     }
 
+    /// @notice Vote limit getter.
+    /// @return Vote limit
     function getMaxVoteTimes()public view returns(uint8){
         return ballot.voteLimit;
     }
